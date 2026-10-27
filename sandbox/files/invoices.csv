@@ -1,0 +1,7 @@
+invoice_id,date,vendor,amount_usd,status
+INV-1041,2026-09-02,Northwind Hosting,1240.00,paid
+INV-1042,2026-09-09,Brightwave Studio,860.50,paid
+INV-1043,2026-09-17,Cloudlane Storage,415.00,paid
+INV-1044,2026-09-24,Orbit Analytics,2300.00,pending
+INV-1045,2026-10-01,Northwind Hosting,1240.00,pending
+INV-1046,2026-10-08,Pixel & Co Design,990.00,overdue
