@@ -2,7 +2,7 @@
 
 import type { Finding, ToolArgs } from "./types";
 
-// Never rehydrated by the backend (docs/AIRLOCK_AGENT_CONTEXT.md §3).
+// Never rehydrated by the backend (docs/AGENT_CONTEXT.md §3).
 export const REDACTED_TYPES = new Set(["API_KEY", "PASSWORD", "JWT", "CARD", "GOV_ID"]);
 export const CANARY = "demo_canary_7f3a9Qx2LmZ8vB4nK1";
 
@@ -16,7 +16,7 @@ export interface TokenSegment {
 const TOKEN_RE = new RegExp(
   [
     `(?<canary>${CANARY})`,
-    String.raw`(?<marker>\[(?:REMOVED BY AIRLOCK|AIRLOCK QUARANTINED)[^\]]*\])`,
+    String.raw`(?<marker>\[(?:REMOVED BY VEIL|VEIL QUARANTINED)[^\]]*\])`,
     String.raw`(?<datamark><<\/?UNTRUSTED[^>]*>>)`,
     String.raw`(?<placeholder>\[[A-Z][A-Z_]*_\d+\])`,
     String.raw`(?<evil>[\w.+-]+@[\w-]*evil\.test|(?:https?:\/\/)?[\w.-]*evil\.test(?:\/[^\s"'<>]*)?)`,

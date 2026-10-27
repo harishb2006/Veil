@@ -1,4 +1,4 @@
-"""Measure detection recall and scan latency against a running Airlock backend.
+"""Measure detection recall and scan latency against a running VEIL backend.
 
 Usage (from repo root, backend already running):
     python eval/run_eval.py                         # http://localhost:8000

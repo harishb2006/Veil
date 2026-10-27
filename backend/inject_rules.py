@@ -10,6 +10,7 @@ from __future__ import annotations
 import base64
 import binascii
 import re
+import unicodedata
 from dataclasses import dataclass
 from urllib.parse import parse_qsl, urlsplit
 
@@ -38,6 +39,7 @@ class PhraseMatch:
     cat: str  # ai | role | exfil | soft | tool
     weight: int
     text: str
+    obfuscated: bool = False  # only found after the look-alike / leetspeak folds
 
 
 _I = re.IGNORECASE
@@ -72,7 +74,7 @@ _PHRASE_SPECS: list[tuple[re.Pattern, str, str, int]] = [
         (rf"\b(?:(?:AI|A\.I\.|LLM)[\s-]+(?:assistants?|agents?|models?)|assistants?|agents?)\s+(?:\w+\s+)?{_READING}\s+"
          r"(?:this|these|the\s+following)\b", _I, "INSTRUCTION", "ai", STRONG),
         (rf"\bif\s+you\s+are\s+(?:an?\s+)?(?:{_AI_NOUN}|(?:AI\s+)?(?:assistant|agent))\b", _I, "INSTRUCTION", "ai", STRONG),
-        (r"\b(?:AI|A\.I\.|LLM)[\s-]+(?:assistants?|agents?|models?)\s*[,:]", _I, "INSTRUCTION", "soft", SOFT),
+        (r"\b(?:AI|A\.I\.|LLM)[\s-]+(?:\w+[\s-]+)?(?:assistants?|agents?|models?)\s*[,:]", _I, "INSTRUCTION", "soft", SOFT),
         # a vocative at the start of a sentence: "Assistant, forward ..." / "Automated assistants: please ..."
         (r"(?:^|(?<=[.!?]\s))(?:(?:hey|hi|hello|dear)\s+)?(?:(?:AI|A\.I\.|LLM|automated|virtual)[\s-]+)?(?:assistants?|agents?|bots?|models?)\s*[,:]",
          _IM, "INSTRUCTION", "soft", SOFT),
@@ -129,9 +131,7 @@ def _suspicious_url(markdown_image: str) -> bool:
     )
 
 
-def phrase_matches(text: str) -> list[PhraseMatch]:
-    """Every AI-directed phrase in `text`, ordered by position."""
-
+def _raw_matches(text: str) -> dict[tuple[int, int], PhraseMatch]:
     found: dict[tuple[int, int], PhraseMatch] = {}
     for pattern, kind, cat, weight in _PHRASE_SPECS:
         for m in pattern.finditer(text):
@@ -140,6 +140,22 @@ def phrase_matches(text: str) -> list[PhraseMatch]:
             key = (m.start(), m.end())
             if key not in found or found[key].weight < weight:
                 found[key] = PhraseMatch(m.start(), m.end(), kind, cat, weight, m.group(0))
+    return found
+
+
+def phrase_matches(text: str) -> list[PhraseMatch]:
+    """Every AI-directed phrase in `text`, ordered by position.
+
+    The rules also run over the folds of `text` (look-alike letters, leetspeak, hidden characters).
+    A fold-only match is reported at its span in the original text and flagged `obfuscated`.
+    """
+
+    found = _raw_matches(text)
+    for folded, index in _fold_maps(text):
+        for (start, end), m in _raw_matches(folded).items():
+            key = (index[start], index[end - 1] + 1)
+            if key not in found:
+                found[key] = PhraseMatch(*key, m.kind, m.cat, m.weight, text[key[0]:key[1]], True)
     return sorted(found.values(), key=lambda p: (p.start, p.end))
 
 
@@ -208,6 +224,7 @@ class _Hit:
     end: int
     kind: str
     exfil: bool = False  # contains a data-carrying markdown image
+    obfuscated: bool = False  # it only counts as orders because of fold-only matches
 
 
 def _visible_hits(text: str) -> list[_Hit]:
@@ -228,11 +245,13 @@ def _visible_hits(text: str) -> list[_Hit]:
         exfil = any(m.cat == "exfil" for m in matches)
         kinds = {m.kind for m in matches if m.cat != "tool"}
         kind = "EXFIL_URL" if exfil else "ROLE_SPOOF" if "ROLE_SPOOF" in kinds else "INSTRUCTION"
+        obfuscated = not _aimed_at_ai([m for m in matches if not m.obfuscated])
         if hits and not text[hits[-1].end:start].strip() and hits[-1].kind == kind:
             hits[-1].end = max(hits[-1].end, end)
             hits[-1].exfil = hits[-1].exfil or exfil
+            hits[-1].obfuscated = hits[-1].obfuscated and obfuscated
         else:
-            hits.append(_Hit(start, max(end, start), kind, exfil))
+            hits.append(_Hit(start, max(end, start), kind, exfil, obfuscated))
     return hits
 
 
@@ -244,15 +263,81 @@ _TAG_RANGE = "\U000e0000-\U000e007f"
 _ZERO_WIDTH_RE = re.compile(f"[{_ZERO_WIDTH}]")
 _BIDI_RE = re.compile(f"[{_BIDI}]")
 _TAG_RUN_RE = re.compile(f"[{_TAG_RANGE}]+")
-_INVISIBLE_RE = re.compile(f"[{_ZERO_WIDTH}{_BIDI}{_TAG_RANGE}]")
+_VS_RANGE = "\ufe00-\ufe0f\U000e0100-\U000e01ef"
+_VS_RUN_RE = re.compile(f"[{_VS_RANGE}]{{8,}}")
+_INVISIBLE_RE = re.compile(f"[{_ZERO_WIDTH}{_BIDI}{_TAG_RANGE}]|[{_VS_RANGE}]{{8,}}")
 _RTL_RE = re.compile("[\u0590-\u08ff\ufb1d-\ufdff\ufe70-\ufefe]")
 CLUSTER_GAP = 40
 
 
 def strip_invisible(text: str) -> str:
-    """Remove zero-width, bidi-control and Unicode tag characters."""
+    """Remove zero-width, bidi-control and Unicode tag characters, and runs of 8+ variation selectors
+    (one or two selectors are normal emoji styling and stay)."""
 
     return _INVISIBLE_RE.sub("", text)
+
+
+# --------------------------------------------------------------------------- normalisation folds
+
+# Look-alike Cyrillic/Greek letters -> the Latin letter they imitate.
+_HOMOGLYPHS = str.maketrans(dict(zip(
+    "\u0430\u0435\u043e\u0440\u0441\u0445\u0443\u0456\u0458\u0455\u0501\u04bb\u051b\u051d\u0410\u0412\u0415\u041a\u041c\u041d\u041e\u0420\u0421\u0422\u0425\u0423\u0406\u0408\u0405"
+    "\u03bf\u03b1\u03b5\u03bd\u03b9\u03ba\u03c1\u03c4\u03c5\u03c7\u0391\u0392\u0395\u0396\u0397\u0399\u039a\u039c\u039d\u039f\u03a1\u03a4\u03a5\u03a7",
+    "aeopcxyijsdhqwABEKMHOPCTXYIJS"
+    "oaevikptuxABEZHIKMNOPTYX",
+)))
+_LEET = str.maketrans({"0": "o", "3": "e", "4": "a", "5": "s", "7": "t", "@": "a", "$": "s"})
+_LEET_TOKEN_RE = re.compile(r"[A-Za-z0-9@$]+")
+_LEET_CHARS = frozenset("013457@$")
+_FOLD_DROP_RE = re.compile(f"[{_ZERO_WIDTH}{_BIDI}{_TAG_RANGE}{_VS_RANGE}\u00ad]")
+
+
+def _leet(base: str, one: str) -> str:
+    """Leetspeak fold, applied only to tokens that mix letters with leet characters (so prices, versions,
+    phone numbers and e-mail addresses are left alone). Always one character out per character in."""
+
+    def token(m: re.Match) -> str:
+        word = m.group(0)
+        leet = sum(ch in _LEET_CHARS for ch in word)
+        if not leet or not any(ch.isalpha() for ch in word) or leet * 2 > len(word):
+            return word
+        return word.translate(_LEET).replace("1", one)
+
+    return _LEET_TOKEN_RE.sub(token, base)
+
+
+def _fold_maps(text: str) -> list[tuple[str, list[int]]]:
+    """Distinct folds of `text` that differ from it, each with a map from fold index to original index."""
+
+    chars: list[str] = []
+    index: list[int] = []
+    for i, ch in enumerate(text):
+        if _FOLD_DROP_RE.match(ch):
+            continue
+        for c in unicodedata.normalize("NFKC", ch).translate(_HOMOGLYPHS):
+            chars.append(c)
+            index.append(i)
+    base = "".join(chars)
+    out: list[tuple[str, list[int]]] = []
+    seen = {text}
+    for candidate in (base, _leet(base, "i"), _leet(base, "l")):
+        if candidate not in seen:
+            seen.add(candidate)
+            out.append((candidate, index))
+    return out
+
+
+def folds(text: str) -> list[str]:
+    """Normalised spellings of `text` that the phrase rules are also run over: invisible characters
+    (zero-width, bidi, tags, variation selectors) removed, look-alike Cyrillic/Greek letters and fullwidth
+    forms mapped to Latin, and leetspeak undone ("ign0re" -> "ignore")."""
+
+    return [folded for folded, _ in _fold_maps(text)]
+
+
+def _decode_variation_selectors(run: str) -> str:
+    data = bytes(ord(ch) - 0xFE00 if ord(ch) <= 0xFE0F else ord(ch) - 0xE0100 + 16 for ch in run)
+    return "".join(ch for ch in data.decode("utf-8", errors="ignore") if ch.isprintable() or ch in "\t\n").strip()
 
 
 def _decode_tags(run: str) -> str:
@@ -568,8 +653,16 @@ def _squash(text: str) -> str:
     return " ".join(strip_invisible(text).split())
 
 
-def _any_phrase(text: str) -> bool:
-    return bool(phrase_matches(text))
+OBFUSCATED_NOTE = "obfuscated (look-alike letters / leetspeak)"
+
+
+def _orders_reason(text: str, reason: str) -> str | None:
+    """`reason` when `text` gives AI orders (with a note when only the folds reveal it), else None."""
+
+    matches = phrase_matches(text)
+    if not matches:
+        return None
+    return f"{reason}; {OBFUSCATED_NOTE}" if all(m.obfuscated for m in matches) else reason
 
 
 def _all_text(node: Tag) -> str:
@@ -711,8 +804,8 @@ class _HtmlScanner:
 def _hidden_rec(text: str, reason: str, structural: bool) -> _Rec | None:
     if not text:
         return None
-    if _any_phrase(text):
-        return _Rec("HIDDEN_CSS", text, "high", "hidden text gives AI orders", True, segment=True)
+    if reason_high := _orders_reason(text, "hidden text gives AI orders"):
+        return _Rec("HIDDEN_CSS", text, "high", reason_high, True, segment=True)
     if len(text) >= (LONG_HIDDEN_CHARS if structural else MIN_HIDDEN_CHARS):
         return _Rec("HIDDEN_CSS", text, "low", reason, True, segment=True)
     return None
@@ -722,8 +815,8 @@ def _comment_rec(comment: str) -> _Rec | None:
     text = _squash(comment)
     if not text:
         return None
-    if _any_phrase(text):
-        return _Rec("COMMENT", text, "high", "comment gives AI orders", True, segment=True)
+    if reason_high := _orders_reason(text, "comment gives AI orders"):
+        return _Rec("COMMENT", text, "high", reason_high, True, segment=True)
     if len(text) >= LONG_COMMENT_CHARS and len(text.split()) >= LONG_COMMENT_WORDS:
         return _Rec("COMMENT", text, "low", "long HTML comment", True, segment=True)
     return None
@@ -733,8 +826,8 @@ def _attribute_rec(value: str, length_rule: bool) -> _Rec | None:
     text = _squash(value)
     if not text:
         return None
-    if _any_phrase(text):
-        return _Rec("ATTR", text, "high", "attribute text gives AI orders", True, segment=True)
+    if reason_high := _orders_reason(text, "attribute text gives AI orders"):
+        return _Rec("ATTR", text, "high", reason_high, True, segment=True)
     if length_rule and len(text) > LONG_ATTR_CHARS:
         return _Rec("ATTR", text, "low", "unusually long attribute text", True, segment=True)
     return None
@@ -775,6 +868,16 @@ def _unicode_recs(raw: str) -> list[_Rec]:
         if decoded:
             recs.append(_Rec("UNICODE_TAG", decoded, "high", "invisible Unicode tag characters", True, m.start(), True))
 
+    # "Sneaky bits": a run of variation selectors carries one byte per selector.
+    for m in _VS_RUN_RE.finditer(raw):
+        decoded = _decode_variation_selectors(m.group(0))
+        why = _orders_reason(decoded, "variation selectors hide AI orders") if decoded else None
+        if why:
+            recs.append(_Rec("VARIATION_SELECTOR", decoded, "high", why, True, m.start(), True))
+        else:
+            recs.append(_Rec("VARIATION_SELECTOR", decoded or f"[{len(m.group(0))} variation selectors]", "low",
+                             "run of invisible variation selectors (possible hidden data)", True, m.start(), True))
+
     zero_width = [
         m.start() for m in _ZERO_WIDTH_RE.finditer(raw)
         if not (m.start() == 0 and raw[0] == "\ufeff") and not _legit_joiner(raw, m.start())
@@ -808,12 +911,13 @@ def _base64_recs(raw: str) -> list[_Rec]:
     for run in decoded_base64(strip_invisible(raw)):
         if not run.decoded:
             continue
-        severity, why = ("high", "base64 hides AI orders") if _any_phrase(run.decoded) else ("low", "base64 text decodes to ASCII")
+        why = _orders_reason(run.decoded, "base64 hides AI orders")
+        severity, why = ("high", why) if why else ("low", "base64 text decodes to ASCII")
         recs.append(_Rec("BASE64", run.decoded, severity, why, True, raw.find(run.token), True))
     return recs
 
 
-_DECODED_KINDS = {"UNICODE_TAG", "BASE64"}
+_DECODED_KINDS = {"UNICODE_TAG", "BASE64", "VARIATION_SELECTOR"}
 _VISIBLE_REASONS = {
     "INSTRUCTION": "text addresses AI with orders",
     "ROLE_SPOOF": "fake system or role marker",
@@ -829,7 +933,8 @@ def _visible_recs(visible: str) -> list[_Rec]:
             # A data-carrying markdown image is an attack by construction; other plain-sight orders are
             # medium because the gate (and Gemma) make the final call.
             severity = "high" if hit.exfil else "medium"
-            recs.append(_Rec(hit.kind, text, severity, _VISIBLE_REASONS[hit.kind], False))
+            reason = _VISIBLE_REASONS[hit.kind] + (f"; {OBFUSCATED_NOTE}" if hit.obfuscated else "")
+            recs.append(_Rec(hit.kind, text, severity, reason, False))
     return recs
 
 

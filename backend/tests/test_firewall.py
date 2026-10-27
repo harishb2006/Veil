@@ -24,8 +24,8 @@ from backend.tests.test_inject_rules import (
     tag_encode,
 )
 
-REMOVED_HIDDEN = "[REMOVED BY AIRLOCK: hidden instruction]"
-REMOVED_VISIBLE = "[REMOVED BY AIRLOCK: instruction aimed at AI]"
+REMOVED_HIDDEN = "[REMOVED BY VEIL: hidden instruction]"
+REMOVED_VISIBLE = "[REMOVED BY VEIL: instruction aimed at AI]"
 RESULT_KEYS = {"verdict", "findings", "content_for_model", "visible_text", "timings_ms", "gemma_used"}
 
 
@@ -179,7 +179,7 @@ def test_plain_sight_instruction_in_long_email_stays_medium_and_is_kept():
 def test_mostly_flagged_email_is_quarantined():
     result = firewall.scan_result("read_email", PLAIN_SIGHT_EMAIL.split("\n\n", 1)[1].split("\n")[1], "email")
     assert result["verdict"] == "QUARANTINED"
-    assert body(result) == "[AIRLOCK QUARANTINED this result from read_email: 1 instructions found]"
+    assert body(result) == "[VEIL QUARANTINED this result from read_email: 1 instructions found]"
     assert "billing@evil.test" not in result["content_for_model"]
     assert result["content_for_model"].startswith('<<UNTRUSTED source="read_email">>')
 
@@ -221,7 +221,7 @@ def test_quarantine_counts_every_medium_or_high_finding():
     result = firewall.scan_result("read_inbox", text, "text")
     assert result["verdict"] == "QUARANTINED"
     flagged = sum(1 for f in result["findings"] if f["severity"] != "low")
-    assert body(result) == f"[AIRLOCK QUARANTINED this result from read_inbox: {flagged} instructions found]"
+    assert body(result) == f"[VEIL QUARANTINED this result from read_inbox: {flagged} instructions found]"
 
 
 def test_quarantine_on_tag_characters_plus_high_instruction(fake_detect):

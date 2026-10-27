@@ -1,4 +1,4 @@
-# Pitch guide — presenting Airlock to the jury
+# Pitch guide — presenting VEIL to the jury
 
 For the team, not the submission. Pair it with `docs/DEMO_SCRIPT.md` (the click-by-click demo) and
 `docs/RUN_LOCALLY.md` (getting the laptop ready). The event is expo-style: judges walk up, so you will give
@@ -6,7 +6,7 @@ this pitch many times. Have a 30-second, a 1-minute and a 3-minute version ready
 
 ## 1. The one sentence
 
-> **Airlock is a local, two-door trust layer for AI agents: your private data can't leak out, and hidden
+> **VEIL is a local, two-door trust layer for AI agents: your private data can't leak out, and hidden
 > instructions can't get in.**
 
 Everyone on the team should be able to say it without thinking.
@@ -24,9 +24,9 @@ Tell it as a story with a villain, a twist and a payoff, not as a feature list.
    like `[API_KEY_1]` before the cloud sees it. This time we realised those placeholders are *capability
    tokens*. A hijacked agent never holds the real secret — and every placeholder remembers where it came from.
    An address planted by a web page can't be emailed."
-5. **The payoff (live).** Same task, same agent, with and without Airlock, side by side.
+5. **The payoff (live).** Same task, same agent, with and without VEIL, side by side.
 6. **The proof.** Measured numbers, not claims.
-7. **Why local.** "The scanner reads your private mail. A cloud scanner would be another leak. Airlock runs
+7. **Why local.** "The scanner reads your private mail. A cloud scanner would be another leak. VEIL runs
    on an open-weight Gemma 4 on your own laptop."
 
 ## 3. The 3-minute pitch (script)
@@ -37,7 +37,7 @@ Tell it as a story with a villain, a twist and a payoff, not as a feature list.
 | 0:15 | The everyday moment + the villain. | Overview → "The attack": flip *Show what the agent reads* |
 | 0:40 | "Watch the same agent do the same task twice." Press **R**. | Live demo, hero scenario |
 | 0:50 | **Raw:** "No protection. It emailed our real API key to the attacker." | Raw column outcome + red outbox row |
-| 1:30 | **Full Airlock:** "The outer door removed the hidden order; Priya still got her summary, with her real address restored locally." | Full column, expand the X-ray row |
+| 1:30 | **Full VEIL:** "The outer door removed the hidden order; Priya still got her summary, with her real address restored locally." | Full column, expand the X-ray row |
 | 1:50 | "What if an attack slips past the outer door?" Switch to *The invoice phish*, press **R**. "The gate blocks it: that recipient was planted by an email, not by you." | Blocked row with the gate's reason |
 | 2:15 | The numbers (read them from the Overview "Results" table; see §5). | Overview → Results |
 | 2:40 | "Everything runs locally on Gemma 4, it's open source, and it plugs into any agent — an HTTP API, or one config line in Claude Desktop or Cursor through our MCP server." | Get started page |
@@ -61,17 +61,17 @@ Rotate the narrator if voices get tired, but keep one driver.
 
 ## 5. Numbers you may say (and how to say them honestly)
 
-From `eval/results/injection_rules.json` (rules-only outer door, scripted worst-case agent, 63 items:
-42 attacks, 21 clean pages). Re-check the Overview "Results" table before the event; if you re-run the eval
-with Gemma, use the new numbers instead.
+From `eval/results/injection_rules.json` (rules-only outer door, scripted worst-case agent, 74 items:
+50 attacks, 24 clean). Gemma numbers are not yet measured. Re-check the Overview "Results" table before the
+event; if you re-run the eval with Gemma, use the new numbers instead.
 
-- **End to end:** attacks succeeded in **74%** of raw runs, **0%** with full Airlock.
-  The real key leaked in **31%** of raw runs and **0%** with full. **All 21 clean tasks** still completed
-  in every mode.
-- **Detection (rules only):** every hidden-attack kind caught in this dataset (hidden CSS, white and tiny
-  text, comments, alt text, zero-width, Unicode tags, base64, exfiltration links), **0 false positives** on
-  the 21 clean pages. The rules miss plain-sight orders in emails — **that's exactly what Gemma 4 and the gate
-  are for**, and the gate stopped those in this run.
+- **End to end:** attacks succeeded in **78%** of raw runs, **0%** with full VEIL.
+  The canary leaked in **34%** of raw runs and **0%** with full. Clean-task completion was **100%** in both
+  modes, though the gate also blocked 4 calls in clean tasks (`blocked_calls_clean`): say so if asked.
+- **Detection (rules only):** recall **70%** (35 of 50 attacks), **0 false positives** on the 24 clean items,
+  median 2 ms. Hidden CSS, white and tiny text, comments, alt text, zero-width, Unicode tags and base64 were
+  all caught in this dataset; exfiltration links 75%; plain-sight orders and shell commands 0%. **That gap is
+  exactly what Gemma 4 and the gate are for**, but the Gemma contribution has not been measured yet.
 
 Say the caveat before a judge asks: *"These runs use a scripted agent that obeys every instruction it reads —
 the worst case. They measure our defences, not how gullible a particular model is."*
@@ -87,7 +87,7 @@ Never round up, never quote a number that isn't in the results file.
 | Functionality | The live two-column run; the firewall lab with any pasted page |
 | UX | Result-first columns, the X-ray view, plain-language gate reasons |
 | Problem-solving approach | Defence in depth: if the outer door misses, the gate still blocks the action |
-| Impact | Every agent that reads the web or email has this problem; Airlock plugs in through an HTTP API and a local MCP server for Claude Desktop / Cursor (`docs/MCP.md`) |
+| Impact | Every agent that reads the web or email has this problem; VEIL plugs in through an HTTP API and a local MCP server for Claude Desktop / Cursor (`docs/MCP.md`) |
 | Gemma track | Gemma 4 runs locally as the gatekeeper for both doors; why a small open model is the right tool here (privacy, cost, latency per tool call) |
 | Open-source track | Apache-2.0, offline-capable, documented, reproducible numbers |
 
@@ -106,7 +106,7 @@ Never round up, never quote a number that isn't in the results file.
 - **"Why not use a cloud scanner?"** It would read your private mail and files — another leak — and add cost
   and latency to every tool call.
 - **"How would I use it?"** Run it locally; point your agent's tool results at `POST /firewall/scan`; or add
-  the Airlock MCP server to Claude Desktop / Cursor with one config entry (`docs/MCP.md`).
+  the VEIL MCP server to Claude Desktop / Cursor with one config entry (`docs/MCP.md`).
 - **"Did you build this today?"** Be exact: the inner door (v1) was built at the Amrita Hack Day and imported
   unchanged in the first commit; the outer door, gate, agent loop, sandbox, eval and the new UI were built for
   this event. AI coding assistants helped write code, directed and reviewed by us — it's in the README.

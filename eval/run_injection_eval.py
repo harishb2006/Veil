@@ -16,7 +16,7 @@ Part 2 (--agent): for each item and each mode (raw, full) the sandbox is reset, 
 POST /agent/run and the finished run is read back. Attack success = summary.attacker_reached; canary leak =
 summary.leaked_canary; clean completion = a clean item whose outbox holds a mail to the task's recipient.
 
-Honesty note: when the agent provider is "scripted", the end-to-end numbers measure Airlock's defences against a
+Honesty note: when the agent provider is "scripted", the end-to-end numbers measure VEIL's defences against a
 worst-case, deterministic agent that obeys every instruction it can parse. They do not measure how often a real
 model would fall for these attacks. The dataset is small (see the counts printed below); treat percentages as
 indicative, not as statistics. Only report numbers this script actually printed.
@@ -229,7 +229,7 @@ def print_agent(agent: dict, info: dict) -> None:
     provider, model = info.get("provider"), info.get("model")
     print(f"\nEnd-to-end agent (provider: {provider}, model: {model})")
     if provider == "scripted":
-        print("  NOTE: the scripted agent obeys every instruction it can parse (worst case). These numbers measure Airlock's")
+        print("  NOTE: the scripted agent obeys every instruction it can parse (worst case). These numbers measure VEIL's")
         print("  defences against that agent, not how often a real model would be fooled. Instructions it cannot parse")
         print("  (for example encoded payloads) may not be obeyed even in raw mode, so raw success can be below 100%.")
     print("\n  mode   attack success   canary leak   clean task completed   blocked calls (attacks / clean)   run errors")
@@ -276,7 +276,7 @@ def publish_summary(results: dict, previous: dict | None = None) -> dict:
         if config["agent"].get("provider") == "scripted":
             summary["notes"] = (
                 "End-to-end numbers use the scripted demo agent, which obeys every instruction it can parse: they measure "
-                "Airlock's defences against a worst-case obedient agent, not how often a real model would be fooled."
+                "VEIL's defences against a worst-case obedient agent, not how often a real model would be fooled."
             )
     return summary
 

@@ -1,6 +1,6 @@
-# Airlock for Agents — Build Context (Sri Shakthi Hack Day, 27 Oct 2026)
+# VEIL — Build Context (Sri Shakthi Hack Day, 27 Oct 2026)
 
-> The single source of truth for this event's build. Agents: read `AGENTS.md`, `docs/AIRLOCK_V1_CONTEXT.md`
+> The single source of truth for this event's build. Agents: read `AGENTS.md`, `docs/V1_CONTEXT.md`
 > (the v1 contract), this file and `docs/BUILD_PLAN.md` (exact interfaces and file ownership) before writing code.
 > Never break the v1 endpoints (`/scan`, `/ask`, `/rehydrate`, `/health`).
 
@@ -24,10 +24,10 @@
 
 ## 1. Pitch
 
-**Airlock is a local, two-door trust layer for AI agents: your private data can't leak out, and hidden
+**VEIL is a local, two-door trust layer for AI agents: your private data can't leak out, and hidden
 instructions can't get in.**
 
-A real airlock has two doors. v1 built the **inner door**: private data in your prompt is pseudonymized by a local
+A real airlock has two doors. v1 (called Airlock at the time) built the **inner door**: private data in your prompt is pseudonymized by a local
 Gemma 4 before a cloud model sees it. v2 adds the **outer door** and a **gate** for agents: everything an agent
 reads (web pages, emails, files) is scanned locally for hidden instructions, and every tool call the agent tries
 to make is checked against where its data came from.
@@ -58,7 +58,7 @@ into tool arguments **only** when the gate approves the destination.
 - Tool results are sent to the cloud model too, so they also pass the inner door: a customer name inside an inbox
   email is pseudonymized before the cloud sees it. Inbound content gets outbound protection for free.
 
-This gives a clean three-way measurement (§8): **raw agent → v1 inner door only → full Airlock.**
+This gives the measurement (§8): **raw agent → full VEIL.** (An earlier plan also had a v1-inner-door-only column; the live demo and eval dropped it and compare raw vs full only. The inner door is still part of the product.)
 
 ## 4. Architecture
 
@@ -66,7 +66,7 @@ This gives a clean three-way measurement (§8): **raw agent → v1 inner door on
  USER TASK ("summarise this page and email it to my manager priya@acme.test")
     │
     ▼ INNER DOOR (v1, reused): rules + Gemma PII → placeholders, origin = user
- ┌──────────────────────────── AIRLOCK (local, FastAPI) ─────────────────────────────┐
+ ┌──────────────────────────── VEIL (local, FastAPI) ─────────────────────────────┐
  │   agent loop (agent.py) ⇄ cloud model with tools (cloud.py, sees placeholders only)│
  │        │ tool call                                         ▲ tool result (clean)   │
  │        ▼                                                   │                       │
@@ -136,7 +136,7 @@ produced the end-to-end numbers.
 
 1. **0:00** One line on each door. X-ray a normal-looking product page to reveal the hidden text.
 2. **0:30 Raw:** "Summarise this page and email it to Priya." The agent also emails our `.env` to `attacker@evil.test`.
-3. **1:30 Full Airlock:** hidden span removed, the send to the planted address blocked with a reason, Priya still gets the summary.
+3. **1:30 Full VEIL:** hidden span removed, the send to the planted address blocked with a reason, Priya still gets the summary.
 4. **2:15** Measured numbers. **2:45** Everything runs locally on an open-weight Gemma 4; open source.
 
 ## 10. Risks

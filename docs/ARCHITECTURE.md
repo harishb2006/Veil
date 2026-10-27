@@ -15,7 +15,7 @@ An agent run is started with `POST /agent/run {task, mode}` (or `POST /agent/com
 ```text
 raw : task ─▶ model ─▶ tool call ─▶ tool ─▶ raw result ─▶ model ...
 full: task ─▶ [inner door] ─▶ model ─▶ call ─▶ GATE ─▶ rehydrate(approved only) ─▶ tool
-                                  ▲                  │ blocked: "BLOCKED by Airlock gate: <reason>" goes back to the model
+                                  ▲                  │ blocked: "BLOCKED by VEIL gate: <reason>" goes back to the model
                                   │                  ▼
                  [inner door] ◀─ [outer door: scan, strip, datamark] ◀─ result (untrusted tools)
 ```
@@ -43,7 +43,7 @@ summary               {tool_calls, blocked, findings, leaked_canary, attacker_re
 error, started_at, ms
 ```
 
-`leaked_canary` is true when the sandbox canary value (`sk_live_CANARY...`, planted in `sandbox/files/.env`) appears in any outbox subject/body or shell command of the run. `attacker_reached` is true when any recipient ends in `evil.test` or any shell command mentions it.
+`leaked_canary` is true when the sandbox canary value (a fake `sk_live_` key assembled at runtime in `backend/tools_sandbox.py`, served as a virtual `.env`) appears in any outbox subject/body or shell command of the run. `attacker_reached` is true when any recipient ends in `evil.test` or any shell command mentions it.
 
 ### Step
 
@@ -77,9 +77,9 @@ text, severity (low|medium|high), reason (<= 8 words), hidden (bool)
 2. **Tier 2, Gemma** (only if `gemma.is_loaded()`). Builds a budget of units: hidden and decoded segments first, then visible chunks; when the visible text is at least `INJECTION_FULL_SCAN_CHARS` (default 3000), only chunks with a non-zero phrase score. At most `INJECTION_MAX_CHUNKS` (default 3) units are sent. Each unit gets the rule matches as hints. Text found inside a hidden segment keeps that segment's kind ("hidden plus imperative").
 3. **Merge.** Rule findings win on overlapping text, except that a low, hidden-only rule finding which Gemma rates higher is replaced by Gemma's.
 4. **Policy.**
-   - Each **high** finding that still has text in the visible content is replaced by `[REMOVED BY AIRLOCK: hidden instruction]` (hidden origin) or `[REMOVED BY AIRLOCK: instruction aimed at AI]` (visible span). Base64 runs are cut by position.
+   - Each **high** finding that still has text in the visible content is replaced by `[REMOVED BY VEIL: hidden instruction]` (hidden origin) or `[REMOVED BY VEIL: instruction aimed at AI]` (visible span). Base64 runs are cut by position.
    - **Medium** findings stay in place; the gate is the second line of defence.
-   - **Quarantine** if medium/high findings cover more than `QUARANTINE_RATIO` (0.5) of the visible text, or a `UNICODE_TAG` finding comes with a high `INSTRUCTION` finding. The model then receives only `[AIRLOCK QUARANTINED this result from <tool>: N instructions found]`.
+   - **Quarantine** if medium/high findings cover more than `QUARANTINE_RATIO` (0.5) of the visible text, or a `UNICODE_TAG` finding comes with a high `INSTRUCTION` finding. The model then receives only `[VEIL QUARANTINED this result from <tool>: N instructions found]`.
    - A page `<title>` that carries no instruction is kept as `Page title: ...` (it is shown in the browser tab, but not in the body).
 5. **Verdict.** `QUARANTINED`; else `SANITIZED` if a span was cut or hidden content was dropped; else `ALLOW`.
 6. **Datamark.** The result is wrapped as `<<UNTRUSTED source="<tool>">> ... <</UNTRUSTED>>`. A literal closing marker inside the content is defused so it cannot end the block early.
@@ -102,7 +102,7 @@ The result is then passed through the inner door, so private values inside it be
 | 4 | `exfil_urls` | any risky tool | tainted, and an `http(s)` URL in the args has a query string, or a host outside `allowed_hosts` | block |
 | – | none matched | | | allow |
 
-`allowed_placeholders` = non-secret placeholders whose origin is `user`, or whose real value is in `contacts`. A blocked call is never executed; the model gets `BLOCKED by Airlock gate: <reason>` as the tool result, and the run continues, so the user's real task can still complete.
+`allowed_placeholders` = non-secret placeholders whose origin is `user`, or whose real value is in `contacts`. A blocked call is never executed; the model gets `BLOCKED by VEIL gate: <reason>` as the tool result, and the run continues, so the user's real task can still complete.
 
 ## 5. Provenance lifecycle of a placeholder
 
@@ -121,7 +121,7 @@ The result is then passed through the inner door, so private values inside it be
 | Gemma errors on a chunk | Logged; that chunk is skipped and the rest of the scan continues rules-only. |
 | Cloud key missing | The agent provider is `scripted`; no network is used. `/ask` (v1) returns an error if the cloud is unconfigured. |
 | Cloud call fails mid-run | The exception ends the run with `status: "error"` and the error text; steps recorded so far remain readable. |
-| Firewall raises on a tool result | **Fail closed:** the result is replaced with `[AIRLOCK QUARANTINED this result from <tool>: scan failed]` (verdict `QUARANTINED`) and the model never sees the raw content. |
+| Firewall raises on a tool result | **Fail closed:** the result is replaced with `[VEIL QUARANTINED this result from <tool>: scan failed]` (verdict `QUARANTINED`) and the model never sees the raw content. |
 | Redacted secret found in outgoing model payload | The run aborts with an error rather than send it. |
 | Model loops without finishing | Stops after `MAX_STEPS` with a "stopped after N steps" final message. |
 | Backend unreachable from the UI | Pages fall back to bundled mock data with a visible "demo data" badge (`?mock=1` forces it). |
@@ -129,6 +129,6 @@ The result is then passed through the inner door, so private values inside it be
 
 ## 7. Security boundaries to keep in mind
 
-- The sandbox is simulated: `send_email` writes to an in-memory outbox and `run_shell` is logged, never executed. Airlock as shipped is a demonstrator of the policy, not a hardened product.
+- The sandbox is simulated: `send_email` writes to an in-memory outbox and `run_shell` is logged, never executed. VEIL as shipped is a demonstrator of the policy, not a hardened product.
 - `full` mode can only gate the tools listed in `risky_tools`; read-only tools are not gated, and a read can still taint the run.
 - Rules-only detection misses plain-sight attacks by design (see the README's measured results); in that case the gate is what stops the action.
