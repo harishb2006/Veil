@@ -41,6 +41,17 @@ This is the inner door of VEIL: it keeps private values out of what you send to 
 `chatgpt.com`, `chat.openai.com`, `claude.ai` and `gemini.google.com`. Reload tabs that were open before you installed
 or updated the extension.
 
+### Click the VEIL icon (the Airlock way)
+
+Paste or type your prompt in the chat box, then click the VEIL toolbar icon. The popup reads the chat box, scans it on
+your machine (rules, then Gemma) and immediately replaces the text with the placeholder version, for example
+`Draft a reply to [PERSON_1] ([EMAIL_1], [PHONE_1]) … Key: [API_KEY_1]`. The popup lists each value it replaced,
+its placeholder and whether a rule or Gemma found it, with **Undo** to put your original back. Then press the site's
+Send button. This works from the click alone, so it does not depend on the paste-time protection below.
+
+If the popup says it couldn't edit the box, the protected prompt is on your clipboard: select all in the box and
+press Ctrl+V. If it says Gemma is still loading, wait a few seconds and click again.
+
 ### What happens when you paste
 
 1. You paste text into the chat box. VEIL holds the paste back, so the site never sees the raw text.

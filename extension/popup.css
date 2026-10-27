@@ -68,3 +68,10 @@ details { margin-top: 10px; }
 summary { cursor: pointer; color: var(--mute); }
 pre { white-space: pre-wrap; word-break: break-word; max-height: 140px; overflow-y: auto; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; font-size: 12px; }
 footer { margin-top: 12px; color: var(--mute); font-size: 11.5px; }
+.progress-text { margin: 8px 0 0; color: var(--mute); }
+.row { display: grid; gap: 8px; margin-top: 10px; }
+button.secondary { background: transparent; color: var(--ink); border: 1px solid var(--line); font-weight: 600; }
+button.secondary:hover { background: var(--panel); }
+button.link { background: none; border: 0; color: var(--mute); font-weight: 400; font-size: 12px; padding: 8px 0 0; text-align: left; text-decoration: underline; width: auto; }
+button.link:hover { background: none; color: var(--ink); }
+.ph { font-family: Consolas, monospace; color: var(--inner); }

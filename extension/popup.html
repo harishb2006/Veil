@@ -8,32 +8,54 @@
 </head>
 <body>
   <header>
-    <div class="brand"><span class="mark" aria-hidden="true"></span><strong>VEIL</strong><span class="sub">outer door</span></div>
+    <div class="brand"><span class="mark" aria-hidden="true"></span><strong>VEIL</strong><span id="modeLabel" class="sub">outer door</span></div>
     <span id="status" class="pill pill-muted" role="status">checking backend…</span>
   </header>
 
-  <p class="lead">Scan the page you are on for hidden or plain-sight instructions aimed at AI agents. The page goes to VEIL on this machine only.</p>
-
-  <button id="scan" type="button">Scan this page</button>
-
-  <section id="progress" hidden aria-live="polite">
-    <div class="bar" aria-hidden="true"><span></span></div>
-    <p id="progressText">Scanning locally…</p>
+  <!-- On ChatGPT, Claude and Gemini: protect the prompt in the chat box (runs as soon as the popup opens). -->
+  <section id="chat" hidden aria-live="polite">
+    <p class="lead">VEIL checks the prompt in this chat box on your machine and swaps private values for placeholders before you send it.</p>
+    <div id="chatProgress" hidden>
+      <div class="bar" aria-hidden="true"><span></span></div>
+      <p class="progress-text">Scanning your prompt locally…</p>
+    </div>
+    <div id="chatResult" hidden>
+      <div id="chatVerdict" class="verdict"></div>
+      <p id="chatMeta" class="meta"></p>
+      <ul id="chatFindings" class="findings"></ul>
+      <div class="row">
+        <button id="undo" type="button" class="secondary" hidden>Undo: put my original text back</button>
+        <button id="rescan" type="button" class="secondary">Scan the chat box again</button>
+      </div>
+    </div>
+    <div id="chatError" class="error" hidden role="alert"></div>
+    <button id="toPage" type="button" class="link">Scan this page for hidden instructions instead</button>
   </section>
 
-  <section id="error" class="error" hidden role="alert"></section>
+  <!-- Everywhere else: scan the page for instructions aimed at AI agents. -->
+  <section id="page">
+    <p class="lead">Scan the page you are on for hidden or plain-sight instructions aimed at AI agents. The page goes to VEIL on this machine only.</p>
+    <button id="scan" type="button">Scan this page</button>
 
-  <section id="result" hidden aria-live="polite">
-    <div id="verdict" class="verdict"></div>
-    <p id="meta" class="meta"></p>
-    <ul id="findings" class="findings"></ul>
-    <details id="seen">
-      <summary>What an agent would read after VEIL</summary>
-      <pre id="seenText"></pre>
-    </details>
+    <section id="progress" hidden aria-live="polite">
+      <div class="bar" aria-hidden="true"><span></span></div>
+      <p id="progressText" class="progress-text">Scanning locally…</p>
+    </section>
+
+    <section id="error" class="error" hidden role="alert"></section>
+
+    <section id="result" hidden aria-live="polite">
+      <div id="verdict" class="verdict"></div>
+      <p id="meta" class="meta"></p>
+      <ul id="findings" class="findings"></ul>
+      <details id="seen">
+        <summary>What an agent would read after VEIL</summary>
+        <pre id="seenText"></pre>
+      </details>
+    </section>
   </section>
 
-  <footer>Rules run first, then local Gemma judges the suspicious sentences. Nothing leaves your machine.</footer>
+  <footer>Rules run first, then local Gemma 4. Nothing leaves your machine.</footer>
   <script src="popup.js"></script>
 </body>
 </html>

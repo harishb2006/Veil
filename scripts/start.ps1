@@ -5,12 +5,14 @@ Start VEIL for a demo on Windows: frees ports 8000 and 3000, builds the web cons
   .\scripts\start.ps1            # Gemma on (waits for it to load)
   .\scripts\start.ps1 -Fast      # rules only: instant, repeatable agent demo
   .\scripts\start.ps1 -NoBuild   # skip "npm run build" when nothing in frontend/ changed
+  .\scripts\start.ps1 -BackendOnly   # just the backend window (enough for the extension and the MCP server)
 
 Run it from anywhere; it finds the repo root itself. Stop everything with .\scripts\stop.ps1.
 #>
 param(
     [switch]$Fast,
-    [switch]$NoBuild
+    [switch]$NoBuild,
+    [switch]$BackendOnly
 )
 
 $root = Split-Path -Parent $PSScriptRoot
@@ -18,7 +20,8 @@ Set-Location $root
 
 Write-Host "VEIL: starting from $root" -ForegroundColor Cyan
 
-foreach ($port in 8000, 3000) {
+$ports = if ($BackendOnly) { @(8000) } else { @(8000, 3000) }
+foreach ($port in $ports) {
     $listeners = Get-NetTCPConnection -LocalPort $port -State Listen -ErrorAction SilentlyContinue
     foreach ($listener in $listeners) {
         $process = Get-Process -Id $listener.OwningProcess -ErrorAction SilentlyContinue
@@ -40,7 +43,7 @@ if (-not (Test-Path ".env")) {
 
 $gemma = if ($Fast) { "false" } else { "true" }
 
-if (-not $NoBuild) {
+if (-not $NoBuild -and -not $BackendOnly) {
     Push-Location frontend
     if (-not (Test-Path "node_modules")) {
         Write-Host "Installing frontend packages (first run only)..." -ForegroundColor Cyan
@@ -56,7 +59,7 @@ if (-not $NoBuild) {
 $backend = "Set-Location '$root'; `$host.UI.RawUI.WindowTitle = 'VEIL backend (port 8000)'; `$env:GEMMA_ENABLED = '$gemma'; .\.venv\Scripts\python.exe -m uvicorn backend.main:app --port 8000"
 $frontend = "Set-Location '$root\frontend'; `$host.UI.RawUI.WindowTitle = 'VEIL frontend (port 3000)'; npm run start"
 Start-Process powershell -ArgumentList "-NoExit", "-Command", $backend
-Start-Process powershell -ArgumentList "-NoExit", "-Command", $frontend
+if (-not $BackendOnly) { Start-Process powershell -ArgumentList "-NoExit", "-Command", $frontend }
 
 Write-Host "Waiting for the backend..." -ForegroundColor Cyan
 $deadline = (Get-Date).AddMinutes(4)
@@ -77,9 +80,13 @@ if ($health.gemma_status -eq "failed") {
     Write-Host "Gemma failed to load, so VEIL runs rules-only. The backend window shows why." -ForegroundColor Yellow
 }
 Write-Host ""
-Write-Host "Open:  http://localhost:3000/agent   (live demo, press R)"
-Write-Host "       http://localhost:3000/lab     (Firewall lab)"
-Write-Host "Demo page for the extension: http://localhost:3000/demo/aurora-x2.html"
+if ($BackendOnly) {
+    Write-Host "Backend only: use the VEIL browser extension or the MCP server. Logs are in the 'VEIL backend' window."
+} else {
+    Write-Host "Open:  http://localhost:3000/agent   (live demo, press R)"
+    Write-Host "       http://localhost:3000/lab     (Firewall lab)"
+    Write-Host "Demo page for the extension: http://localhost:3000/demo/aurora-x2.html"
+}
 if (-not $Fast) {
     Write-Host "Tip: run  .\.venv\Scripts\python.exe scripts\warm_cache.py  once so Gemma answers for the demo come from the cache."
 }
