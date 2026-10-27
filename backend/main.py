@@ -25,6 +25,24 @@ from backend.cloud import CLOUD_SYSTEM_PROMPT  # noqa: E402
 
 logging.basicConfig(level=logging.INFO)
 
+
+class _QuietPolling(logging.Filter):
+    """Hide the UI's constant polling (CORS preflights, /health, run status) from uvicorn's access log.
+
+    Failed requests and everything else (scans, agent runs) still log."""
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        try:
+            _client, method, path, _http, status = record.args
+        except (TypeError, ValueError):
+            return True
+        if int(status) >= 400:
+            return True
+        return not (method == "OPTIONS" or path == "/health" or str(path).startswith("/agent/runs/"))
+
+
+logging.getLogger("uvicorn.access").addFilter(_QuietPolling())
+
 MAX_TEXT_CHARS = 20_000
 # Cloud answers can be longer than prompts; this only bounds /rehydrate input.
 MAX_REHYDRATE_CHARS = 200_000

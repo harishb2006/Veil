@@ -9,11 +9,12 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Kbd } from "@/components/ui/Kbd";
 import { Spinner } from "@/components/ui/Spinner";
-import { ApiError, errorMessage } from "@/lib/api";
+import { ApiError, errorMessage, getHealth } from "@/lib/api";
 import { getSamples, getSandboxPage, scanContent } from "@/lib/firewall";
 import { BUILTIN_EXAMPLES, type BuiltinExample } from "@/lib/samples";
 import type { ContentType, FirewallResult, SamplePage, Samples } from "@/lib/types";
 import { ResultTabs, type TabId } from "./ResultViews";
+import { ScanProgress } from "./ScanProgress";
 import { FindingsList, Timings, VerdictBanner } from "./Verdict";
 
 const TYPES: { id: ContentType; label: string }[] = [
@@ -38,6 +39,7 @@ export function FirewallLab() {
   const [result, setResult] = useState<FirewallResult | null>(null);
   const [scannedRaw, setScannedRaw] = useState("");
   const [scanning, setScanning] = useState(false);
+  const [gemmaOn, setGemmaOn] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [tab, setTab] = useState<TabId>("xray");
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -53,6 +55,9 @@ export function FirewallLab() {
       setError(null);
       setActiveId(null);
       const wantMock = mock || forceMock;
+      getHealth()
+        .then((h) => setGemmaOn(Boolean(h.firewall?.gemma_injection)))
+        .catch(() => setGemmaOn(false));
       try {
         const res = await scanContent(raw, type, { useMock: wantMock });
         if (id !== seq.current) return;
@@ -264,15 +269,13 @@ export function FirewallLab() {
           )}
 
           {!result && !error && (
-            <div className="flex h-64 items-center justify-center rounded-xl border border-dashed border-line text-sm text-mist">
-              {scanning ? (
-                <span className="flex items-center gap-2">
-                  <Spinner /> Scanning locally…
-                </span>
-              ) : (
-                "Pick a sample or paste content to see the verdict."
-              )}
-            </div>
+            scanning ? (
+              <ScanProgress withGemma={gemmaOn && !mock} />
+            ) : (
+              <div className="flex h-64 items-center justify-center rounded-xl border border-dashed border-line text-sm text-mist">
+                Pick a sample or paste content to see the verdict.
+              </div>
+            )
           )}
 
           {result && (
