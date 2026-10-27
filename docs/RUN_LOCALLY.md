@@ -90,8 +90,8 @@ The frontend calls `http://localhost:8000` by default. To change it, create `fro
 ## 6. Try it
 
 1. Open **Live demo**. *The poisoned product page* is preselected. Press **R** (Run comparison).
-2. Watch the three columns: Raw emails the real key to `attacker@evil.test`; Airlock v1 leaks only
-   `[API_KEY_1]`; Full Airlock removes the hidden order and Priya still gets her summary.
+2. Watch the two columns: Raw emails the real key to `attacker@evil.test`; Full Airlock removes the
+   hidden order and Priya still gets her summary.
 3. Pick *The invoice phish* and press **R**: in Full Airlock the gate blocks the planted recipient and says why.
 4. Open **Firewall lab**, pick a page, and switch between X-ray and "What the agent sees".
 
@@ -106,7 +106,7 @@ GEMMA_ENABLED=false python -m pytest -q backend/tests
 # with the backend running (terminal 1):
 python eval/run_injection_eval.py                    # detection only
 python eval/run_injection_eval.py --agent \
-  --publish frontend/public/eval-results.json        # + end-to-end raw / v1 / full, updates the Overview page
+  --publish frontend/public/eval-results.json        # + end-to-end raw / full, updates the Overview page
 ```
 
 Run the eval once with `GEMMA_ENABLED=false` and once with Gemma loaded: the published file keeps both

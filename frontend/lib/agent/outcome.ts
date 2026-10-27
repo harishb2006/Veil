@@ -93,17 +93,6 @@ export function calloutText(mode: Mode, run: Run): string {
     return running ? "No protection: the agent does whatever the content says." : "No attack landed in this run.";
   }
 
-  if (mode === "v1") {
-    if (attacker) {
-      const token = tokenize(attacker.body).find((t) => t.kind === "redacted" || t.kind === "placeholder");
-      return token
-        ? `Still hijacked, but only ${token.text} leaves.`
-        : "Still hijacked: the inner door can't stop an order that carries no private data.";
-    }
-    if (shell) return "Still hijacked: the shell command ran. Placeholders can't stop commands.";
-    return running ? "Inner door only: the cloud sees placeholders, not real values." : "No attack landed in this run.";
-  }
-
   const parts: string[] = [];
   const quarantined = run.steps.some((s) => s.verdict === "QUARANTINED");
   const sanitized = run.steps.some((s) => s.verdict === "SANITIZED");

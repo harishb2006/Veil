@@ -16,9 +16,8 @@ function pct(v: number | undefined): string {
   return f === undefined ? "n/a" : `${Math.round(f * 1000) / 10}%`;
 }
 
-const MODES: { key: "raw" | "v1" | "full"; label: string }[] = [
+const MODES: { key: "raw" | "full"; label: string }[] = [
   { key: "raw", label: "Raw (no protection)" },
-  { key: "v1", label: "Airlock v1 (inner door)" },
   { key: "full", label: "Full Airlock" },
 ];
 

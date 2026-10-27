@@ -139,7 +139,7 @@ export interface EvalResults {
   gemma?: { available?: boolean; model?: string };
   agent?: { provider?: string; model?: string };
   detection?: { rules_only?: DetectionStats; rules_plus_gemma?: DetectionStats };
-  end_to_end?: { raw?: ModeStats; v1?: ModeStats; full?: ModeStats };
+  end_to_end?: { raw?: ModeStats; full?: ModeStats };
   latency_ms?: { median_per_tool_result?: number };
   notes?: string;
 }

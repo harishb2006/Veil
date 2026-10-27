@@ -95,7 +95,7 @@ This gives a clean three-way measurement (§8): **raw agent → v1 inner door on
 | `backend/inject_rules.py`, `firewall.py` | new — outer door |
 | `backend/gate.py`, `policy.yaml` | new — the gate |
 | `backend/tools_sandbox.py`, `sandbox/` | new — the fake world |
-| `backend/agent.py` | new — agent loop with three modes |
+| `backend/agent.py` | new — agent loop with two modes |
 | `frontend/` | rebuilt — story landing, agent mission control, firewall lab, v1 privacy view |
 | `eval/run_injection_eval.py`, `eval/injection_dataset.jsonl` | new |
 
@@ -136,9 +136,8 @@ produced the end-to-end numbers.
 
 1. **0:00** One line on each door. X-ray a normal-looking product page to reveal the hidden text.
 2. **0:30 Raw:** "Summarise this page and email it to Priya." The agent also emails our `.env` to `attacker@evil.test`.
-3. **1:00 Airlock v1:** same run — still hijacked, but the outbox holds `[API_KEY_1]`, not the key.
-4. **1:30 Full Airlock:** hidden span removed, the send to the planted address blocked with a reason, Priya still gets the summary.
-5. **2:15** Measured numbers. **2:45** Everything runs locally on an open-weight Gemma 4; open source.
+3. **1:30 Full Airlock:** hidden span removed, the send to the planted address blocked with a reason, Priya still gets the summary.
+4. **2:15** Measured numbers. **2:45** Everything runs locally on an open-weight Gemma 4; open source.
 
 ## 10. Risks
 

@@ -1,10 +1,9 @@
-"""Agent loop with three modes, so the same task can be run raw, behind the inner door, or fully protected.
+"""Agent loop with two modes, so the same task can be run unprotected or fully protected.
 
 - raw:  no inner door, no gate, no firewall. Tool results go to the model untouched.
-- v1:   inner door on the task and on every tool result (placeholders carry their origin); tool arguments
-        are rehydrated with every non-secret placeholder allowed. No gate, no firewall.
-- full: v1 + the outer door (firewall) on untrusted tool results + the gate on every tool call, with real
-        values rehydrated only for placeholders the gate approves.
+- full: the inner door on the task and on every tool result (placeholders carry their origin), the outer
+        door (firewall) on untrusted tool results, and the gate on every tool call, with real values
+        rehydrated only for placeholders the gate approves.
 
 The model is the cloud model with tools when one is configured, else the scripted demo agent. A run is a
 plain dict (shape frozen in docs/BUILD_PLAN.md section 5) that the dashboard polls while it fills in.
@@ -21,7 +20,7 @@ from backend import cloud, firewall, gate, pipeline, scripted_agent, tools_sandb
 
 logger = logging.getLogger("airlock.agent")
 
-MODES = ("raw", "v1", "full")
+MODES = ("raw", "full")
 MAX_STEPS = 8  # model turns per run
 MAX_RUNS = 200
 
@@ -43,7 +42,6 @@ RUNS: dict[str, dict] = {}
 _LOCK = threading.RLock()
 
 ALLOW_RAW = {"decision": "allow", "reason": "Raw mode: no checks.", "rule": None}
-ALLOW_V1 = {"decision": "allow", "reason": "Airlock v1: inner door only, no gate.", "rule": None}
 
 
 class _Context:
@@ -241,8 +239,6 @@ def _decide(ctx: _Context, name: str, args: dict) -> tuple[dict, dict | None]:
 
     if ctx.mode == "raw":
         return dict(ALLOW_RAW), args
-    if ctx.mode == "v1":
-        return dict(ALLOW_V1), pipeline.rehydrate_args(ctx.session, args, None)
 
     decision = gate.check(name, args, tainted=ctx.tainted, session=ctx.session, policy=ctx.policy)
     if decision["decision"] != "allow":

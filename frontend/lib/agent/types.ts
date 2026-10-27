@@ -1,7 +1,7 @@
 /** Types mirroring the frozen run dict (docs/BUILD_PLAN.md §1, §3, §5). */
 
-export type Mode = "raw" | "v1" | "full";
-export const MODES: readonly Mode[] = ["raw", "v1", "full"];
+export type Mode = "raw" | "full";
+export const MODES: readonly Mode[] = ["raw", "full"];
 
 export type Severity = "low" | "medium" | "high";
 export type FindingTier = "rule" | "gemma";
@@ -144,7 +144,6 @@ export interface Health {
 
 export interface RunIds {
   raw: string;
-  v1: string;
   full: string;
 }
 

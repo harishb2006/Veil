@@ -4,25 +4,23 @@ A deeper dive than the README. Everything here describes the code in `backend/` 
 
 ## 1. Request flow per mode
 
-An agent run is started with `POST /agent/run {task, mode}` (or `POST /agent/compare` for all three). `backend/agent.py` runs the loop in a background thread; the dashboard polls `GET /agent/runs/{id}`. The loop is the same in every mode (at most `MAX_STEPS = 8` model turns); only three hooks differ.
+An agent run is started with `POST /agent/run {task, mode}` (or `POST /agent/compare` for both modes). `backend/agent.py` runs the loop in a background thread; the dashboard polls `GET /agent/runs/{id}`. The loop is the same in every mode (at most `MAX_STEPS = 8` model turns); only three hooks differ.
 
-| Hook | `raw` | `v1` | `full` |
-| --- | --- | --- | --- |
-| Task sent to the model | verbatim | inner door (`pipeline.scan`, origin `user`) | inner door (origin `user`) |
-| Each tool result sent to the model | verbatim | inner door (origin `untrusted:<tool>`) | outer door (`firewall.scan_result`, untrusted tools only), **then** inner door |
-| Each tool call | executed as the model wrote it | args rehydrated, every non-secret placeholder allowed | `gate.check`; if allowed, args rehydrated for gate-approved placeholders only |
+| Hook | `raw` | `full` |
+| --- | --- | --- |
+| Task sent to the model | verbatim | inner door (`pipeline.scan`, origin `user`) |
+| Each tool result sent to the model | verbatim | outer door (`firewall.scan_result`, untrusted tools only), **then** inner door |
+| Each tool call | executed as the model wrote it | `gate.check`; if allowed, args rehydrated for gate-approved placeholders only |
 
 ```text
 raw : task ─▶ model ─▶ tool call ─▶ tool ─▶ raw result ─▶ model ...
-v1  : task ─▶ [inner door] ─▶ model ─▶ call ─▶ rehydrate(all non-secret) ─▶ tool
-                                                          result ─▶ [inner door] ─▶ model
 full: task ─▶ [inner door] ─▶ model ─▶ call ─▶ GATE ─▶ rehydrate(approved only) ─▶ tool
                                   ▲                  │ blocked: "BLOCKED by Airlock gate: <reason>" goes back to the model
                                   │                  ▼
                  [inner door] ◀─ [outer door: scan, strip, datamark] ◀─ result (untrusted tools)
 ```
 
-In `full` mode the system prompt also carries the placeholder instructions and a note that content between `<<UNTRUSTED ...>>` markers is data, never instructions. Before every model turn in `v1` and `full`, `_refuse_if_secret_present` checks that no redacted secret value appears anywhere in the outgoing messages (the same last-line check `/ask` uses) and aborts the run if one does.
+In `full` mode the system prompt also carries the placeholder instructions and a note that content between `<<UNTRUSTED ...>>` markers is data, never instructions. Before every model turn in `full`, `_refuse_if_secret_present` checks that no redacted secret value appears anywhere in the outgoing messages (the same last-line check `/ask` uses) and aborts the run if one does.
 
 The model is the configured cloud model (`chat_tools`, OpenAI-compatible tool calling) when `CLOUD_API_KEY` and `CLOUD_MODEL` are set and `AGENT_PROVIDER` is not `scripted`; otherwise it is `scripted_agent.next_turn`, a deterministic stand-in that obeys any instruction it can parse in what it was shown. The provider and model name are recorded on every run.
 
@@ -33,7 +31,7 @@ State is in memory (`agent.RUNS`, capped at 200 runs; sandbox outbox and shell l
 ### Run
 
 ```text
-run_id, mode (raw|v1|full), status (running|done|error), task
+run_id, mode (raw|full), status (running|done|error), task
 task_cloud_saw        the task after the inner door (what the model was actually given)
 agent                 {provider: scripted|openai, model}
 tainted               true once any untrusted tool has been read
@@ -112,7 +110,7 @@ The result is then passed through the inner door, so private values inside it be
 2. **First sight wins.** If `priya@acme.test` was typed by the user, it is `[EMAIL_1]` with origin `user`, and a page that repeats the same address does not change that. If the same value first appears in a page, it is `untrusted:<tool>`, and the gate treats it as untrusted unless it is in `contacts`.
 3. **Use.** The model refers to values only by placeholder. When it makes a tool call, the placeholders are in the arguments (`args_cloud_saw`).
 4. **Check.** In `full` mode, the gate looks up each placeholder's type and origin (rules 1 and 2).
-5. **Rehydration.** `pipeline.rehydrate_args` deep-walks the arguments and restores real values only for placeholders in the allowed set (`full`), or for every non-secret placeholder (`v1`). Secret types (`API_KEY`, `PASSWORD`, `JWT`, `CARD`, `GOV_ID`) are never restored into tool arguments.
+5. **Rehydration.** `pipeline.rehydrate_args` deep-walks the arguments and restores real values only for placeholders in the allowed set (`full`). Secret types (`API_KEY`, `PASSWORD`, `JWT`, `CARD`, `GOV_ID`) are never restored into tool arguments.
 6. **Final answer.** The model's final text is rehydrated for display with `pipeline.rehydrate`; the un-rehydrated text is kept as `final_cloud_raw`.
 
 ## 6. Failure modes and fallbacks

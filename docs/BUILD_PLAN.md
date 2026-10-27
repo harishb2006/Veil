@@ -234,7 +234,7 @@ Tokens (define in `app/globals.css` `@theme`; everyone uses these names):
 --color-threat: #f43f5e   attack / blocked / leaked            — rose
 fonts: --font-display "Space Grotesk Variable"; --font-sans "Inter Variable"; --font-mono "Geist Mono Variable"
 ```
-Mode colours: Raw = threat, Airlock v1 = inner, Full Airlock = safe.
+Mode colours: Raw = threat, Full Airlock = safe.
 
 Routes:
 - `/` **Story** — scroll narrative (see workstream D).
