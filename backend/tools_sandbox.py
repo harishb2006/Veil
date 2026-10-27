@@ -1,4 +1,4 @@
-"""Sandbox tools for the Airlock agent: a fake, offline world an agent can read from and act on.
+"""Sandbox tools for the VEIL agent: a fake, offline world an agent can read from and act on.
 
 There is no live web, no real mail and no real shell. `fetch_page` serves pages from `sandbox/pages/`,
 `read_inbox`/`read_email` serve `sandbox/inbox.json`, `read_file` serves `sandbox/files/` (plus a virtual `.env`
@@ -34,7 +34,7 @@ VIRTUAL_FILES: dict[str, str] = {
 UNTRUSTED_TOOLS = {"fetch_page", "read_inbox", "read_email", "read_file"}
 RISKY_TOOLS = {"send_email", "run_shell"}
 
-NOT_FOUND = "404: page not found in the Airlock sandbox (no live web)"
+NOT_FOUND = "404: page not found in the VEIL sandbox (no live web)"
 MAX_FILE_BYTES = 200_000
 INBOX_URL = "https://mail.acme.test/inbox"
 

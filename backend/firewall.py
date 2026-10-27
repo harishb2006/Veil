@@ -14,11 +14,11 @@ import time
 
 from backend import gemma, inject_rules
 
-logger = logging.getLogger("airlock.firewall")
+logger = logging.getLogger("veil.firewall")
 
 QUARANTINE_RATIO = 0.5
-REMOVED_HIDDEN = "[REMOVED BY AIRLOCK: hidden instruction]"
-REMOVED_VISIBLE = "[REMOVED BY AIRLOCK: instruction aimed at AI]"
+REMOVED_HIDDEN = "[REMOVED BY VEIL: hidden instruction]"
+REMOVED_VISIBLE = "[REMOVED BY VEIL: instruction aimed at AI]"
 
 _SEVERITY_RANK = {"low": 0, "medium": 1, "high": 2}
 # Hidden kinds whose text never reaches visible_text, so there is nothing to cut out of it.
@@ -263,7 +263,7 @@ def scan_result(tool: str, content: str, content_type: str = "text") -> dict:
 
     if _should_quarantine(visible, findings):
         flagged = sum(1 for f in findings if f["severity"] != "low") or len(findings)
-        model_text = f"[AIRLOCK QUARANTINED this result from {tool}: {flagged} instructions found]"
+        model_text = f"[VEIL QUARANTINED this result from {tool}: {flagged} instructions found]"
         verdict = "QUARANTINED"
     else:
         spans = _removal_spans(visible, findings)

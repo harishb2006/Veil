@@ -13,7 +13,7 @@ import time
 import traceback
 from pathlib import Path
 
-logger = logging.getLogger("airlock.gemma")
+logger = logging.getLogger("veil.gemma")
 
 ALLOWED_TYPES = {
     "PERSON", "ORG", "EMAIL", "PHONE", "ADDRESS", "LOCATION", "GOV_ID",

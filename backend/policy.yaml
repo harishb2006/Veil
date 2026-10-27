@@ -1,4 +1,4 @@
-# Airlock gate policy. Every tool call an agent tries to make is checked against this file.
+# VEIL gate policy. Every tool call an agent tries to make is checked against this file.
 
 # Tools whose results are untrusted content (reading one "taints" the run).
 untrusted_sources: [fetch_page, read_inbox, read_email, read_file]

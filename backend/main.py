@@ -64,7 +64,7 @@ async def lifespan(_app: FastAPI):
     gemma.shutdown()
 
 
-app = FastAPI(title="Airlock API", lifespan=lifespan)
+app = FastAPI(title="VEIL API", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,

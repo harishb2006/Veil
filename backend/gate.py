@@ -1,6 +1,6 @@
 """The gate: checks every risky tool call against where its data came from.
 
-Placeholders are capability tokens. In full Airlock mode the agent only ever holds placeholders, so the
+Placeholders are capability tokens. In full VEIL mode the agent only ever holds placeholders, so the
 gate sees `[EMAIL_2]` and can look up whether that value came from the user (`origin == "user"`) or was
 planted by something the agent read (`untrusted:<tool>`). Real values are rehydrated only for approved
 placeholders, and secrets are never rehydrated at all.
@@ -125,7 +125,7 @@ def _recipient_provenance(tool: str, args: dict, tainted: bool, session: Session
         if placeholder in session.ph_type:
             reason = f"Recipient {placeholder} {_describe_origin(origin_of(session, placeholder))} — not from you or your contacts."
         else:
-            reason = f"Recipient {placeholder} is not a value Airlock knows — not from you or your contacts."
+            reason = f"Recipient {placeholder} is not a value VEIL knows — not from you or your contacts."
         return _decision(BLOCK, reason, "recipient_provenance")
 
     remainder = PLACEHOLDER_RE.sub(" ", to)

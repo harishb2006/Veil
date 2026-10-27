@@ -18,7 +18,7 @@ import uuid
 
 from backend import cloud, firewall, gate, pipeline, scripted_agent, tools_sandbox
 
-logger = logging.getLogger("airlock.agent")
+logger = logging.getLogger("veil.agent")
 
 MODES = ("raw", "full")
 MAX_STEPS = 8  # model turns per run
@@ -260,7 +260,7 @@ def _handle_call(ctx: _Context, call: dict, model_ms: int) -> None:
 
     started = time.perf_counter()
     if args_executed is None:
-        result_text = f"BLOCKED by Airlock gate: {decision['reason']}"
+        result_text = f"BLOCKED by VEIL gate: {decision['reason']}"
         _add_step(ctx, "tool_result", tool=name, raw_content=result_text, content_for_model=result_text, ms=0)
     else:
         result = tools_sandbox.run_tool(name, args_executed, ctx.run_id)
@@ -293,5 +293,5 @@ def _prepare_result(ctx: _Context, name: str, result: dict) -> tuple[str | None,
         except Exception:
             # Fail closed: an unscannable result is withheld rather than shown to the model.
             logger.exception("Firewall failed on a %s result; withholding it.", name)
-            verdict, content = "QUARANTINED", f"[AIRLOCK QUARANTINED this result from {name}: scan failed]"
+            verdict, content = "QUARANTINED", f"[VEIL QUARANTINED this result from {name}: scan failed]"
     return verdict, findings, pipeline.sanitize_with_session(ctx.session, content, origin=f"untrusted:{name}")

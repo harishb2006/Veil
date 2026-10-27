@@ -6,7 +6,7 @@ import os
 
 import httpx
 
-logger = logging.getLogger("airlock.cloud")
+logger = logging.getLogger("veil.cloud")
 
 # Tells the cloud model how to treat the placeholders the inner door puts in its input.
 CLOUD_SYSTEM_PROMPT = (
