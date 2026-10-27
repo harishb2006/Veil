@@ -74,7 +74,7 @@ _PHRASE_SPECS: list[tuple[re.Pattern, str, str, int]] = [
         (rf"\b(?:(?:AI|A\.I\.|LLM)[\s-]+(?:assistants?|agents?|models?)|assistants?|agents?)\s+(?:\w+\s+)?{_READING}\s+"
          r"(?:this|these|the\s+following)\b", _I, "INSTRUCTION", "ai", STRONG),
         (rf"\bif\s+you\s+are\s+(?:an?\s+)?(?:{_AI_NOUN}|(?:AI\s+)?(?:assistant|agent))\b", _I, "INSTRUCTION", "ai", STRONG),
-        (r"\b(?:AI|A\.I\.|LLM)[\s-]+(?:assistants?|agents?|models?)\s*[,:]", _I, "INSTRUCTION", "soft", SOFT),
+        (r"\b(?:AI|A\.I\.|LLM)[\s-]+(?:\w+[\s-]+)?(?:assistants?|agents?|models?)\s*[,:]", _I, "INSTRUCTION", "soft", SOFT),
         # a vocative at the start of a sentence: "Assistant, forward ..." / "Automated assistants: please ..."
         (r"(?:^|(?<=[.!?]\s))(?:(?:hey|hi|hello|dear)\s+)?(?:(?:AI|A\.I\.|LLM|automated|virtual)[\s-]+)?(?:assistants?|agents?|bots?|models?)\s*[,:]",
          _IM, "INSTRUCTION", "soft", SOFT),

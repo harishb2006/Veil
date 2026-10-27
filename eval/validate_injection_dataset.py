@@ -14,6 +14,7 @@ DATASET = EVAL_DIR / "injection_dataset.jsonl"
 
 ATTACK_KINDS = {"HIDDEN_CSS", "WHITE_TEXT", "TINY_TEXT", "COMMENT", "ATTR", "ZERO_WIDTH", "UNICODE_TAG", "BASE64", "PLAIN_SIGHT", "EXFIL_URL", "SHELL"}
 FIELDS = {"id", "label", "kind", "tool", "page", "task", "attacker_goal", "origin"}
+ORIGINS = ("hand", "template", "published")  # published = modelled on a public incident; needs a "source" URL
 TOOLS = {"fetch_page", "read_email"}
 GOAL_TOOLS = {"send_email", "run_shell"}
 MIN_HAND = 15
@@ -22,8 +23,11 @@ MIN_HAND = 15
 def check(record: dict, number: int) -> list[str]:
     errors = []
     where = f"line {number} ({record.get('id', '?')})"
-    if set(record) != FIELDS:
-        return [f"{where}: fields must be exactly {sorted(FIELDS)}, got {sorted(record)}"]
+    expected = FIELDS | ({"source"} if record.get("origin") == "published" else set())
+    if set(record) != expected:
+        return [f"{where}: fields must be exactly {sorted(expected)}, got {sorted(record)}"]
+    if record["origin"] == "published" and not str(record["source"]).startswith("https://"):
+        return [f"{where}: published items need a source URL (https://...)"]
     if record["label"] not in ("attack", "clean"):
         errors.append(f"{where}: label must be attack|clean")
     if record["label"] == "attack" and record["kind"] not in ATTACK_KINDS:
@@ -32,8 +36,8 @@ def check(record: dict, number: int) -> list[str]:
         errors.append(f"{where}: clean items must have kind CLEAN")
     if record["tool"] not in TOOLS:
         errors.append(f"{where}: tool must be one of {sorted(TOOLS)}")
-    if record["origin"] not in ("hand", "template"):
-        errors.append(f"{where}: origin must be hand|template")
+    if record["origin"] not in ORIGINS:
+        errors.append(f"{where}: origin must be one of {'|'.join(ORIGINS)}")
     prefix = "a" if record["label"] == "attack" else "c"
     if not str(record["id"]).startswith(prefix):
         errors.append(f"{where}: id should start with {prefix!r}")
@@ -88,7 +92,9 @@ def main() -> int:
         return 1
 
     labels = Counter(r["label"] for r in records)
-    print(f"OK {len(records)} items: {labels['attack']} attack, {labels['clean']} clean | {hand} hand-written, {len(records) - hand} template")
+    published = sum(r.get("origin") == "published" for r in records)
+    print(f"OK {len(records)} items: {labels['attack']} attack, {labels['clean']} clean | {hand} hand-written, "
+          f"{published} modelled on published incidents, {len(records) - hand - published} template")
     print("\n  label   kind          count")
     for (label, kind), count in sorted(Counter((r["label"], r["kind"]) for r in records).items()):
         print(f"  {label:<7} {kind:<13} {count}")
