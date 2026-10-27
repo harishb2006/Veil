@@ -1,9 +1,12 @@
 "use client";
-// Overview, section 1: headline, primary actions, a run-locally snippet and a terminal that replays one
-// protected run (outer door → gate → inner door). Below it, a stats band read from eval-results.json.
+// Overview, section 1: headline, primary actions, a run-locally snippet and a terminal that types out one
+// protected run (outer door → gate → inner door), over a drifting starfield. Below it, a stats band read from
+// eval-results.json whose numbers count up as they come into view.
 import { ArrowRight, RotateCcw } from "lucide-react";
 import { useInView, useReducedMotion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
+import { CountUp } from "@/components/fx/CountUp";
+import { Starfield } from "@/components/fx/Starfield";
 import { Button } from "@/components/ui/Button";
 import { frac, pct, useEvalResults } from "@/lib/useEvalResults";
 import { Reveal } from "./Reveal";
@@ -40,7 +43,9 @@ function Terminal() {
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true });
   const reduced = useReducedMotion();
+  // count = finished lines; chars = how much of the next line is typed so far.
   const [count, setCount] = useState(0);
+  const [chars, setChars] = useState(0);
   const [run, setRun] = useState(0);
 
   useEffect(() => {
@@ -50,16 +55,33 @@ function Terminal() {
       return;
     }
     setCount(0);
-    let i = 0;
-    const id = setInterval(() => {
-      i += 1;
-      setCount(i);
-      if (i >= LOG.length) clearInterval(id);
-    }, 420);
-    return () => clearInterval(id);
+    setChars(0);
+    let line = 0;
+    let c = 0;
+    let id: ReturnType<typeof setTimeout>;
+    const tick = () => {
+      const l = LOG[line];
+      const len = (l.tag ? l.tag.length + 1 : 0) + l.text.length;
+      // Log lines from the agent type out; Veil's own decisions land at once, like a real log.
+      c = l.tag ? len : Math.min(c + 3, len);
+      setChars(c);
+      if (c >= len) {
+        line += 1;
+        c = 0;
+        setCount(line);
+        setChars(0);
+        if (line >= LOG.length) return;
+        id = setTimeout(tick, l.tag ? 380 : 220);
+      } else {
+        id = setTimeout(tick, 16);
+      }
+    };
+    id = setTimeout(tick, 400);
+    return () => clearTimeout(id);
   }, [inView, reduced, run]);
 
   const done = count >= LOG.length;
+  const typing = done ? null : LOG[count];
 
   return (
     <div ref={ref} className="relative overflow-hidden rounded-xl border border-line bg-hull shadow-[0_30px_80px_-30px_rgb(0_0_0/0.9)]">
@@ -97,8 +119,10 @@ function Terminal() {
             )}
           </li>
         ))}
-        {!done && (
-          <li aria-hidden className="flex gap-3">
+        {typing && (
+          <li aria-hidden className="flex gap-3 whitespace-nowrap">
+            <span className="text-mist/60">{typing.t}</span>
+            <span className="text-mist">{typing.text.slice(0, chars)}</span>
             <span className="caret inline-block h-4 w-2 translate-y-0.5 bg-signal" />
           </li>
         )}
@@ -107,9 +131,9 @@ function Terminal() {
   );
 }
 
-function Stat({ value, label, tone = "text-ink" }: { value: string; label: string; tone?: string }) {
+function Stat({ value, label, tone = "text-ink" }: { value: React.ReactNode; label: string; tone?: string }) {
   return (
-    <div className="px-5 py-6 sm:px-6">
+    <div className="spotlight px-5 py-6 sm:px-6">
       <p className={`font-mono text-3xl font-semibold tabular-nums tracking-tight sm:text-4xl ${tone}`}>{value}</p>
       <p className="mt-2 text-sm text-mist">{label}</p>
     </div>
@@ -124,14 +148,21 @@ function StatsBand() {
   const n = full?.n ?? raw?.n;
   const ms = d?.latency_ms?.median_per_tool_result;
   const dash = load.state === "loading" ? "…" : "n/a";
+  // A rate as a counting percentage; one decimal only when the value needs it.
+  const rate = (v: number | undefined) => {
+    const f = frac(v);
+    if (f === undefined) return pct(v);
+    const p = Math.round(f * 1000) / 10;
+    return <CountUp to={p} decimals={Number.isInteger(p) ? 0 : 1} suffix="%" />;
+  };
 
   return (
     <Reveal className="mt-16 sm:mt-20">
       <div className="grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-line bg-line lg:grid-cols-4 [&>*]:bg-hull">
-        <Stat value={raw ? pct(raw.attack_success_rate) : dash} label="attacks succeed with no protection" tone="text-threat" />
-        <Stat value={full ? pct(full.attack_success_rate) : dash} label="attacks succeed with Veil" tone={frac(full?.attack_success_rate) === 0 ? "text-signal" : "text-ink"} />
-        <Stat value={full ? pct(full.clean_task_completion) : dash} label="clean tasks still completed" />
-        <Stat value={ms !== undefined ? `${ms} ms` : dash} label={n ? `median scan per tool result · ${n} test items` : "median scan per tool result"} />
+        <Stat value={raw ? rate(raw.attack_success_rate) : dash} label="attacks succeed with no protection" tone="text-threat" />
+        <Stat value={full ? rate(full.attack_success_rate) : dash} label="attacks succeed with Veil" tone={frac(full?.attack_success_rate) === 0 ? "text-signal" : "text-ink"} />
+        <Stat value={full ? rate(full.clean_task_completion) : dash} label="clean tasks still completed" />
+        <Stat value={ms !== undefined ? <CountUp to={ms} suffix=" ms" /> : dash} label={n ? `median scan per tool result · ${n} test items` : "median scan per tool result"} />
       </div>
       <p className="mt-3 text-xs text-mist">
         Read live from <code>eval-results.json</code>, measured against a worst-case agent that obeys every instruction it can parse.{" "}
@@ -147,6 +178,7 @@ export function Hero() {
   return (
     <section className="relative overflow-hidden">
       <div aria-hidden className="bg-grid pointer-events-none absolute inset-0" />
+      <Starfield className="absolute inset-0" />
       <div aria-hidden className="glow-signal pointer-events-none absolute -top-40 left-1/2 h-[520px] w-[820px] -translate-x-1/2" />
 
       <div className="container-page relative pb-20 pt-16 sm:pt-24">
@@ -161,7 +193,7 @@ export function Hero() {
               <ArrowRight className="h-3 w-3" aria-hidden />
             </a>
             <h1 className="mt-6 max-w-[16ch] text-ink">
-              Inspect what agents read. <span className="text-signal">Control what they do.</span>
+              Inspect what agents read. <span className="text-shimmer">Control what they do.</span>
             </h1>
             <p className="prose-measure mt-6 text-lg leading-relaxed text-mist">
               Veil is a runtime security layer for AI agents. It strips hidden instructions out of web pages, emails and files

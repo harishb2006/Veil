@@ -57,7 +57,10 @@ export function StatusPill() {
   return (
     <div className="group/status relative">
       <button type="button" className="inline-flex items-center gap-2 rounded-md px-1.5 py-1 text-sm text-mist" aria-describedby="backend-status-details">
-        <span aria-hidden className={`h-1.5 w-1.5 rounded-full ${TONES[tone].dot}`} />
+        <span aria-hidden className="relative flex h-1.5 w-1.5">
+          {tone === "safe" && <span className={`absolute inset-0 animate-ping rounded-full opacity-70 ${TONES[tone].dot}`} />}
+          <span className={`relative h-1.5 w-1.5 rounded-full ${TONES[tone].dot}`} />
+        </span>
         <span className="hidden sm:inline">{label}</span>
         <span className="sm:hidden">Status</span>
       </button>

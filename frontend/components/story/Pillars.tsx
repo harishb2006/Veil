@@ -46,7 +46,7 @@ export function Pillars() {
       <div className="mt-12 grid gap-4 md:grid-cols-3">
         {PILLARS.map(({ verb, name, Icon, tone, body, href, cta }, i) => (
           <Reveal key={name} delay={i * 0.05}>
-            <Link href={href} className="card-hover group flex h-full flex-col rounded-xl border border-line bg-hull p-6">
+            <Link href={href} className="spotlight card-hover group flex h-full flex-col rounded-xl border border-line bg-hull p-6">
               <div className="flex items-center justify-between">
                 <span className={`inline-flex h-10 w-10 items-center justify-center rounded-lg border border-line bg-panel ${tone}`}>
                   <Icon className="h-5 w-5" />

@@ -134,7 +134,7 @@ export function Results() {
 
   return (
     <section id="results" className="container-page scroll-mt-20 border-t border-line py-20">
-      <SectionHead index="05" eyebrow="Evaluation" title="Measured, not claimed">
+      <SectionHead index="06" eyebrow="Evaluation" title="Measured, not claimed">
         Every number below is read from the evaluation output when this page loads. Nothing is typed in by hand.
       </SectionHead>
 

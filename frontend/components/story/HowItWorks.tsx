@@ -11,7 +11,7 @@ const TOKENS: { value: string; placeholder: string; origin: string; allowed: "ye
 export function HowItWorks() {
   return (
     <section id="how" className="container-page scroll-mt-20 border-t border-line py-20">
-      <SectionHead index="04" eyebrow="Provenance" title="Placeholders carry their origin">
+      <SectionHead index="05" eyebrow="Provenance" title="Placeholders carry their origin">
           A placeholder is more than a redaction. It remembers where the value came from, and the gate uses that when the
           agent asks to put a real value back into a tool call.
       </SectionHead>

@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { LogoMark } from "@/components/ui/DoorIcons";
+import { ScrollProgress } from "@/components/fx/ScrollProgress";
 import { REPO_URL } from "@/lib/site";
 import { StatusPill } from "./StatusPill";
 
@@ -79,6 +80,7 @@ export function SiteHeader() {
           </button>
         </div>
       </div>
+      <ScrollProgress />
 
       {open && (
         <nav id="mobile-nav" aria-label="Main" className="border-t border-line bg-void px-4 py-2 md:hidden">

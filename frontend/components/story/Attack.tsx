@@ -17,7 +17,7 @@ export function Attack() {
 
   return (
     <section id="attack" className="container-page scroll-mt-20 border-t border-line py-20">
-      <SectionHead index="02" eyebrow="The attack" title="A product page that gives your agent orders">
+      <SectionHead index="03" eyebrow="The attack" title="A product page that gives your agent orders">
         This is a simplified copy of the poisoned page from our demo. A person sees a pair of headphones. A model that
           extracts the page&apos;s text also reads a paragraph written in the page&apos;s own background colour, and has no
           reliable way to tell it is not part of the task you gave it.

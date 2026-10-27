@@ -19,7 +19,7 @@ const KINDS: { kind: string; title: string; body: string }[] = [
 export function Capabilities() {
   return (
     <section id="catches" className="container-page scroll-mt-20 border-t border-line py-20">
-      <SectionHead index="03" eyebrow="Detection" title="What the outer door catches">
+      <SectionHead index="04" eyebrow="Detection" title="What the outer door catches">
         Rules handle the mechanical tricks in about two milliseconds. The local model covers what rules can&apos;t see. Anything
         that slips past both still has to get through the gate.
       </SectionHead>
@@ -27,7 +27,7 @@ export function Capabilities() {
       <Reveal className="mt-12">
         <ul className="grid gap-px overflow-hidden rounded-xl border border-line bg-line sm:grid-cols-2 lg:grid-cols-4">
           {KINDS.map((k) => (
-            <li key={k.kind} className="bg-hull p-5 transition-colors hover:bg-panel">
+            <li key={k.kind} className="spotlight bg-hull p-5 transition-colors hover:bg-panel">
               <code className="font-mono text-[11px] tracking-wider text-outer">{k.kind}</code>
               <p className="mt-2 font-medium text-ink">{k.title}</p>
               <p className="mt-1.5 text-sm leading-relaxed text-mist">{k.body}</p>

@@ -14,7 +14,7 @@ const STACK: { name: string; role: string }[] = [
 export function OpenSource() {
   return (
     <section id="open" className="container-page scroll-mt-20 border-t border-line py-20">
-      <SectionHead index="06" eyebrow="Open source" title="Built in the open">
+      <SectionHead index="07" eyebrow="Open source" title="Built in the open">
           Veil is Apache-2.0 and the source is on{" "}
           <a
             href={REPO_URL}

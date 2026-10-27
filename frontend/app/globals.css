@@ -197,3 +197,77 @@ body {
     scroll-behavior: auto !important;
   }
 }
+
+/* ---------- Motion layer. Every effect below is decorative: content is complete without it, and
+   prefers-reduced-motion (handled above) freezes all of it. ---------- */
+
+/* Cursor spotlight: <Providers> sets --mx / --my on whichever .spotlight element is under the pointer. */
+.spotlight {
+  --mx: -400px;
+  --my: -400px;
+  background-image: radial-gradient(
+    360px circle at var(--mx) var(--my),
+    color-mix(in srgb, var(--color-signal) 9%, transparent),
+    transparent 60%
+  );
+}
+
+/* Shimmering accent text. */
+@keyframes shimmer {
+  to {
+    background-position: -200% 0;
+  }
+}
+.text-shimmer {
+  background: linear-gradient(
+      100deg,
+      var(--color-signal) 0%,
+      var(--color-signal) 40%,
+      #c9fff0 50%,
+      var(--color-signal) 60%,
+      var(--color-signal) 100%
+    )
+    0 0 / 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: shimmer 6s linear infinite;
+}
+
+/* Marching dashes along the flow diagram's tracks. */
+@keyframes march {
+  to {
+    stroke-dashoffset: -20;
+  }
+}
+.track-march {
+  stroke-dasharray: 4 6;
+  animation: march 1.2s linear infinite;
+}
+
+/* Slow breathing ring around live nodes. */
+@keyframes breathe {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 0.9;
+  }
+}
+.breathe {
+  animation: breathe 2.6s ease-in-out infinite;
+}
+
+/* Infinite ticker: the track holds two copies of the items and slides by half its width. */
+@keyframes ticker {
+  to {
+    transform: translateX(-50%);
+  }
+}
+.ticker-track {
+  animation: ticker 40s linear infinite;
+}
+.ticker:hover .ticker-track {
+  animation-play-state: paused;
+}
