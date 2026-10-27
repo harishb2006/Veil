@@ -335,7 +335,7 @@ export function mockFirewallScanSync(content: string, contentType: ContentType =
   // content_for_model: built from visible text, high visible spans replaced, hidden content never shown.
   let forModel = visible;
   const removedVisible = findings.filter((f) => !f.hidden && f.severity === "high");
-  for (const f of removedVisible) forModel = forModel.replace(f.text, "[REMOVED BY AIRLOCK: instruction aimed at AI]");
+  for (const f of removedVisible) forModel = forModel.replace(f.text, "[REMOVED BY VEIL: instruction aimed at AI]");
 
   const droppedHidden = findings.some((f) => f.hidden);
   const flaggedChars = findings.filter((f) => !f.hidden && f.severity !== "low").reduce((n, f) => n + f.text.length, 0);
@@ -345,7 +345,7 @@ export function mockFirewallScanSync(content: string, contentType: ContentType =
   const verdict: Verdict = quarantined ? "QUARANTINED" : droppedHidden || removedVisible.length ? "SANITIZED" : "ALLOW";
 
   const content_for_model = quarantined
-    ? `[AIRLOCK QUARANTINED this result from fetch_page: ${Math.max(1, hiddenHigh + removedVisible.length)} instructions found]`
+    ? `[VEIL QUARANTINED this result from fetch_page: ${Math.max(1, hiddenHigh + removedVisible.length)} instructions found]`
     : forModel;
   const rulesMs = Math.max(1, Math.round(performance.now() - t0));
   return {

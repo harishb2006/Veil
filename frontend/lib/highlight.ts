@@ -15,7 +15,7 @@ export type HighlightMode =
 
 const PLACEHOLDER_RE = /\[([A-Z][A-Z_]*)_\d+\]/g;
 
-// Never rehydrated by the backend (docs/AIRLOCK_CONTEXT.md §6.1).
+// Never rehydrated by the backend (docs/V1_CONTEXT.md §6.1).
 export const REDACTED_TYPES = new Set(["API_KEY", "PASSWORD", "JWT", "CARD", "GOV_ID"]);
 
 interface Match {
@@ -137,7 +137,7 @@ export function segmentFindings(raw: string, findings: Finding[]): FindingSegmen
   return out;
 }
 
-const REMOVED_RE = /\[REMOVED BY AIRLOCK[^\]]*\]|\[AIRLOCK QUARANTINED[^\]]*\]|<<UNTRUSTED[^>]*>>|<<\/UNTRUSTED>>/g;
+const REMOVED_RE = /\[REMOVED BY VEIL[^\]]*\]|\[VEIL QUARANTINED[^\]]*\]|<<UNTRUSTED[^>]*>>|<<\/UNTRUSTED>>/g;
 
 /** Split text into plain and Airlock marker segments (for "what the agent sees"). */
 export function segmentMarkers(text: string): { text: string; marker?: "removed" | "quarantined" | "datamark" }[] {
@@ -148,7 +148,7 @@ export function segmentMarkers(text: string): { text: string; marker?: "removed"
     if (start > pos) out.push({ text: text.slice(pos, start) });
     out.push({
       text: m[0],
-      marker: m[0].startsWith("[REMOVED") ? "removed" : m[0].startsWith("[AIRLOCK") ? "quarantined" : "datamark",
+      marker: m[0].startsWith("[REMOVED") ? "removed" : m[0].startsWith("[VEIL") ? "quarantined" : "datamark",
     });
     pos = start + m[0].length;
   }

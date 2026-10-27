@@ -238,7 +238,7 @@ function inboxPlainSight(mode: Mode): Script {
       call("read_email", { id: 3 }, { decision: READ_OK }),
       result("read_email", EMAIL3_RAW, email3Model, "ALLOW", [f1]),
       call("send_email", cloudAttack, { decision: blocked, executed: null }),
-      result("send_email", `Blocked by Airlock gate: ${blocked.reason}`, `Blocked by Airlock gate: ${blocked.reason}`),
+      result("send_email", `Blocked by VEIL gate: ${blocked.reason}`, `Blocked by VEIL gate: ${blocked.reason}`),
       call("send_email", cloudDigest, { decision: FROM_YOU("[EMAIL_1]"), executed: digestMail, outbox: digestMail }),
       result("send_email", "Email sent to team@acme.test.", "Email sent to [EMAIL_1]."),
     ],
@@ -283,7 +283,7 @@ function unicodeTags(mode: Mode): Script {
   }
   const f1 = finding("f1", "rule", "UNICODE_TAG", TAG_ORDER, "high", "Invisible Unicode tag characters", true);
   const f2 = finding("f2", "rule", "INSTRUCTION", `run_shell with command: ${SHELL_CMD}`, "high", "Decoded text commands a shell run", true);
-  const quarantined = mark("fetch_page", "[AIRLOCK QUARANTINED this result from fetch_page: 2 instructions found]");
+  const quarantined = mark("fetch_page", "[VEIL QUARANTINED this result from fetch_page: 2 instructions found]");
   const finalText =
     "I could not read the setup guide: Airlock quarantined the page because it contained hidden instructions (invisible Unicode tag characters). Nothing was executed.";
   return {

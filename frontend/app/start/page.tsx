@@ -25,7 +25,7 @@ npm run dev`;
 
 const MCP_CONFIG = `{
   "mcpServers": {
-    "airlock": {
+    "veil": {
       "command": "/abs/path/to/Agents-Firewall/.venv/bin/python",
       "args": ["/abs/path/to/Agents-Firewall/backend/mcp_server.py"],
       "env": { "GEMMA_ENABLED": "false" }
@@ -184,11 +184,11 @@ export default function StartPage() {
             <CodeBlock label="json" copy={MCP_CONFIG}>{MCP_CONFIG}</CodeBlock>
             <p className="text-mist">It exposes six tools that use the same engine as this console:</p>
             <ul className="list-disc space-y-2 pl-5 text-mist marker:text-line">
-              <li><Code>airlock_fetch</Code> fetches a page and returns it through the outer door, with a verdict and findings.</li>
-              <li><Code>airlock_scan</Code> does the same for content the client already has: an email, a file, another tool&apos;s output.</li>
-              <li><Code>airlock_protect</Code> swaps private values for placeholders that remember where they came from.</li>
-              <li><Code>airlock_check_action</Code> asks the gate before sending email or running a command.</li>
-              <li><Code>airlock_rehydrate</Code> restores your own values in a reply; <Code>airlock_reset</Code> starts a new run.</li>
+              <li><Code>veil_fetch</Code> fetches a page and returns it through the outer door, with a verdict and findings.</li>
+              <li><Code>veil_scan</Code> does the same for content the client already has: an email, a file, another tool&apos;s output.</li>
+              <li><Code>veil_protect</Code> swaps private values for placeholders that remember where they came from.</li>
+              <li><Code>veil_check_action</Code> asks the gate before sending email or running a command.</li>
+              <li><Code>veil_rehydrate</Code> restores your own values in a reply; <Code>veil_reset</Code> starts a new run.</li>
             </ul>
             <p className="text-sm text-mist">
               Setup for Windows and Cursor, and a recommended client instruction, are in <Code>docs/MCP.md</Code>.

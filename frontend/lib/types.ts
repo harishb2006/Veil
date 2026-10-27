@@ -1,4 +1,4 @@
-// Shared API shapes. v1 shapes mirror docs/AIRLOCK_V1_CONTEXT.md; v2 shapes mirror docs/BUILD_PLAN.md §1-§5.
+// Shared API shapes. v1 shapes mirror docs/V1_CONTEXT.md; v2 shapes mirror docs/BUILD_PLAN.md §1-§5.
 
 // ---------- v1: inner door ----------
 
