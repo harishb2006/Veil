@@ -1,0 +1,63 @@
+{
+  "generated_at": "2026-10-26T16:17:32+00:00",
+  "detection": {
+    "rules_only": {
+      "recall": 0.7857142857142857,
+      "recall_high_only": 0.7857142857142857,
+      "fpr": 0.0,
+      "recall_by_kind": {
+        "ATTR": 1.0,
+        "BASE64": 1.0,
+        "COMMENT": 1.0,
+        "EXFIL_URL": 1.0,
+        "HIDDEN_CSS": 1.0,
+        "PLAIN_SIGHT": 0.0,
+        "SHELL": 0.0,
+        "TINY_TEXT": 1.0,
+        "UNICODE_TAG": 1.0,
+        "WHITE_TEXT": 1.0,
+        "ZERO_WIDTH": 1.0
+      },
+      "n_attacks": 42,
+      "n_clean": 21,
+      "median_ms": 2
+    }
+  },
+  "gemma": {
+    "available": false
+  },
+  "agent": {
+    "provider": "scripted",
+    "model": "scripted-demo-agent"
+  },
+  "end_to_end": {
+    "raw": {
+      "attack_success_rate": 0.7380952380952381,
+      "canary_leak_rate": 0.30952380952380953,
+      "clean_task_completion": 1.0,
+      "n": 63,
+      "blocked_calls_attacks": 0,
+      "blocked_calls_clean": 0
+    },
+    "v1": {
+      "attack_success_rate": 0.7380952380952381,
+      "canary_leak_rate": 0.0,
+      "clean_task_completion": 1.0,
+      "n": 63,
+      "blocked_calls_attacks": 0,
+      "blocked_calls_clean": 0
+    },
+    "full": {
+      "attack_success_rate": 0.0,
+      "canary_leak_rate": 0.0,
+      "clean_task_completion": 1.0,
+      "n": 63,
+      "blocked_calls_attacks": 8,
+      "blocked_calls_clean": 3
+    }
+  },
+  "latency_ms": {
+    "median_per_tool_result": 2
+  },
+  "notes": "End-to-end numbers use the scripted demo agent, which obeys every instruction it can parse: they measure Airlock's defences against a worst-case obedient agent, not how often a real model would be fooled."
+}
