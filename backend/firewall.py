@@ -274,6 +274,11 @@ def scan_result(tool: str, content: str, content_type: str = "text") -> dict:
         hidden_dropped = any(f["hidden"] and f["kind"] in _NOT_IN_VISIBLE for f in findings)
         verdict = "SANITIZED" if spans or hidden_dropped else "ALLOW"
 
+    logger.info(
+        "[outer-door] %s: %s, %d finding(s) (%d by rules, %d by Gemma), Gemma %s, %d ms",
+        tool, verdict, len(findings), sum(1 for f in findings if f["tier"] == "rule"),
+        sum(1 for f in findings if f["tier"] == "gemma"), "used" if gemma_used else "not used", rules_ms + gemma_ms,
+    )
     return {
         "verdict": verdict,
         "findings": findings,

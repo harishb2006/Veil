@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>VEIL</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header>
+    <div class="brand"><span class="mark" aria-hidden="true"></span><strong>VEIL</strong><span class="sub">outer door</span></div>
+    <span id="status" class="pill pill-muted" role="status">checking backend…</span>
+  </header>
+
+  <p class="lead">Scan the page you are on for hidden or plain-sight instructions aimed at AI agents. The page goes to VEIL on this machine only.</p>
+
+  <button id="scan" type="button">Scan this page</button>
+
+  <section id="progress" hidden aria-live="polite">
+    <div class="bar" aria-hidden="true"><span></span></div>
+    <p id="progressText">Scanning locally…</p>
+  </section>
+
+  <section id="error" class="error" hidden role="alert"></section>
+
+  <section id="result" hidden aria-live="polite">
+    <div id="verdict" class="verdict"></div>
+    <p id="meta" class="meta"></p>
+    <ul id="findings" class="findings"></ul>
+    <details id="seen">
+      <summary>What an agent would read after VEIL</summary>
+      <pre id="seenText"></pre>
+    </details>
+  </section>
+
+  <footer>Rules run first, then local Gemma judges the suspicious sentences. Nothing leaves your machine.</footer>
+  <script src="popup.js"></script>
+</body>
+</html>

@@ -4,6 +4,7 @@ Loading and response-extraction logic is adapted from the team's pre-event
 Gradio test app used to benchmark Gemma 4 on our machine.
 """
 
+import hashlib
 import json
 import logging
 import re
@@ -24,13 +25,18 @@ ALLOWED_TYPES = {
 MAX_CHUNK_CHARS = 1500
 SHUTDOWN_WAIT_S = 10
 
-DETECT_SYSTEM_PROMPT = """You are a privacy scanner that runs locally. Find every sensitive item in the user's text that should not be sent to a third-party AI.
-Sensitive items include: person names; company or client names tied to business details; email addresses; phone numbers; street addresses; government ID numbers; bank, card or account numbers; money amounts tied to a person, client or deal; medical conditions, diagnoses or medications; HR details (salary, performance, disciplinary, resignation); internal project codenames; internal hostnames, URLs or IP addresses; passwords, API keys and tokens.
-Do NOT flag: generic words, programming keywords, public products or public companies mentioned generically, well-known cities used without a personal address.
-Copy each value EXACTLY as it appears in the text (same spelling and case). Prefer the shortest exact span that is sensitive (e.g. "diabetes", not the whole sentence).
-Respond with ONLY a JSON object and nothing else:
-{"entities":[{"text":"<exact substring>","type":"PERSON|ORG|EMAIL|PHONE|ADDRESS|LOCATION|GOV_ID|FINANCIAL|MEDICAL|HR|PROJECT|INTERNAL_URL|IP_ADDRESS|API_KEY|PASSWORD|JWT|CARD|OTHER","reason":"<5 words>"}]}
-If nothing is sensitive, respond {"entities":[]}."""
+# Tuned for slow local hardware: every prompt token and, above all, every output token costs time. The prompt is
+# short, the answer is one "TYPE|exact text" line per item, and the model skips what the rules already catch
+# (emails, phones, URLs, IPs, keys, passwords), so it only writes the contextual items.
+DETECT_MAX_TOKENS = 96
+DETECT_SYSTEM_PROMPT = """List private items in the text that must not go to a third-party AI: person names, client or company names tied to business details, street addresses, government ID numbers, money tied to a person or deal, medical conditions, HR details, internal project names.
+Skip emails, phone numbers, URLs, IPs, keys and passwords (handled elsewhere), generic words, public products and well-known cities.
+Answer one item per line as TYPE|exact text. Copy the text exactly, shortest span. TYPE is one of PERSON ORG ADDRESS GOV_ID FINANCIAL MEDICAL HR PROJECT OTHER.
+Example answer:
+PERSON|Leena
+MEDICAL|asthma
+ORG|Acme Corp
+If there is nothing, answer NONE."""
 
 _manager = None
 _model = None
@@ -175,12 +181,109 @@ def _extract_response_text(response) -> str:
     return "".join(output_parts).strip()
 
 
+# --------------------------------------------------------------------------- answer cache
+#
+# Gemma runs at temperature 0, so the same prompt gives the same answer. Answers are kept in memory and in an
+# append-only file (.cache/gemma_cache.jsonl, git-ignored), so a repeated scan, a re-run of a demo scenario or a
+# backend restart does not pay for the model again. The key covers the model alias, the limits, the system prompt
+# and the exact input, so changing the prompt or the text can never return a stale answer.
+
+CACHE_MAX_ENTRIES = 4000
+_cache: dict[str, str] = {}
+_cache_lock = threading.Lock()
+_cache_loaded = False
+
+
+def _cache_enabled() -> bool:
+    return os.getenv("GEMMA_CACHE", "true").strip().lower() not in {"false", "0", "no", "off"}
+
+
+def _cache_path() -> Path:
+    custom = os.getenv("GEMMA_CACHE_FILE", "").strip()
+    return Path(custom) if custom else Path(__file__).resolve().parent.parent / ".cache" / "gemma_cache.jsonl"
+
+
+def _cache_key(system: str, user: str, max_tokens: int, temperature: float) -> str:
+    raw = "\x00".join([model_alias(), str(max_tokens), str(temperature), system, user])
+    return hashlib.sha256(raw.encode("utf-8")).hexdigest()
+
+
+def _cache_load() -> None:
+    global _cache_loaded
+    with _cache_lock:
+        if _cache_loaded:
+            return
+        _cache_loaded = True
+        path = _cache_path()
+        try:
+            if path.exists():
+                for line in path.read_text(encoding="utf-8").splitlines():
+                    try:
+                        row = json.loads(line)
+                    except ValueError:
+                        continue
+                    if isinstance(row, dict) and isinstance(row.get("k"), str) and isinstance(row.get("v"), str):
+                        _cache[row["k"]] = row["v"]
+                logger.info("Gemma cache: %d saved answers loaded from %s", len(_cache), path)
+        except OSError:
+            logger.warning("Gemma cache: could not read %s; starting empty.", path)
+
+
+def _cache_store(key: str, value: str) -> None:
+    with _cache_lock:
+        if len(_cache) >= CACHE_MAX_ENTRIES:
+            _cache.pop(next(iter(_cache)))
+        _cache[key] = value
+        try:
+            path = _cache_path()
+            path.parent.mkdir(parents=True, exist_ok=True)
+            with path.open("a", encoding="utf-8") as handle:
+                handle.write(json.dumps({"k": key, "v": value}) + "\n")
+        except OSError:
+            logger.warning("Gemma cache: could not write the cache file; keeping answers in memory only.")
+
+
+def cache_size() -> int:
+    return len(_cache)
+
+
+def _call_label(system: str) -> str:
+    if system is INJECTION_SYSTEM_PROMPT:
+        return "injection"
+    if system is DETECT_SYSTEM_PROMPT:
+        return "private-data"
+    return "gemma"
+
+
 def generate(system: str, user: str, max_tokens: int = 512, temperature: float = 0.0) -> str:
-    """Run one stateless chat completion on the local model."""
+    """Run one stateless chat completion on the local model (answers are cached, see above)."""
 
     if not is_loaded():
         raise RuntimeError("Gemma is not loaded.")
 
+    label = _call_label(system)
+    key = None
+    if _cache_enabled():
+        _cache_load()
+        key = _cache_key(system, user, max_tokens, temperature)
+        with _cache_lock:
+            cached = _cache.get(key)
+        if cached is not None:
+            logger.info("[%s] cache hit, no model call (%d chars in)", label, len(user))
+            return cached
+
+    started = time.perf_counter()
+    text = _run_model(system, user, max_tokens, temperature)
+    logger.info(
+        "[%s] Gemma answered in %.1fs (%d chars in, %d chars out, cap %d tokens)",
+        label, time.perf_counter() - started, len(user), len(text), max_tokens,
+    )
+    if key is not None and text.strip():
+        _cache_store(key, text)
+    return text
+
+
+def _run_model(system: str, user: str, max_tokens: int, temperature: float) -> str:
     from foundry_local_sdk import (
         ChatSession,
         MessageItem,
@@ -268,21 +371,72 @@ def _validate(parsed, chunk: str) -> list[dict]:
     return results
 
 
+def _parse_entities(raw: str, chunk: str) -> list[dict]:
+    """Entities from the model's answer: "TYPE|text" lines (preferred) or the older JSON object."""
+
+    cleaned = raw.replace("`", "").strip()
+    if "{" in cleaned:
+        return _validate(_parse_json(raw), chunk)
+    items: list[dict] = []
+    understood = False
+    for line in cleaned.splitlines():
+        line = line.strip().lstrip("-*").strip()
+        if not line:
+            continue
+        if line.upper().startswith("NONE"):
+            understood = True
+            continue
+        kind, separator, value = line.partition("|")
+        if not separator:
+            continue
+        understood = True
+        items.append({"type": kind.strip(), "text": value.strip().strip("\"'"), "reason": "contextual " + kind.strip().lower()})
+    if not understood:
+        raise ValueError("No TYPE|text lines in model output.")
+    return _validate({"entities": items}, chunk)
+
+
 def _detect_chunk(chunk: str) -> list[dict] | None:
-    """Return validated entities for one chunk, or None if Gemma never produced valid JSON."""
+    """Return validated entities for one chunk, or None if Gemma never produced a usable answer."""
 
-    raw = generate(DETECT_SYSTEM_PROMPT, chunk)
+    raw = generate(DETECT_SYSTEM_PROMPT, chunk, max_tokens=DETECT_MAX_TOKENS)
     try:
-        return _validate(_parse_json(raw), chunk)
+        return _parse_entities(raw, chunk)
     except (ValueError, json.JSONDecodeError):
-        logger.warning("Gemma returned invalid JSON; retrying once.")
+        logger.warning("Gemma gave no usable private-data answer; retrying once.")
 
-    raw = generate(DETECT_SYSTEM_PROMPT, f"{chunk}\n\nReturn ONLY valid JSON.")
+    raw = generate(DETECT_SYSTEM_PROMPT, f"{chunk}\n\nAnswer only with TYPE|text lines, or NONE.", max_tokens=DETECT_MAX_TOKENS)
     try:
-        return _validate(_parse_json(raw), chunk)
+        return _parse_entities(raw, chunk)
     except (ValueError, json.JSONDecodeError):
-        logger.error("Gemma returned invalid JSON twice; skipping chunk. Output: %r", raw[:500])
+        logger.error("Gemma gave no usable private-data answer twice; skipping chunk. Output: %r", raw[:300])
         return None
+
+
+# Sentences with nothing a person or a business could call private (no capitalised name, no digit, no address, no
+# sensitive word) are not worth a model call. The first word of a sentence is capitalised anyway, so it only
+# counts when it is not a common sentence starter.
+_PII_STARTERS = {
+    "the", "a", "an", "this", "that", "these", "those", "we", "our", "i", "it", "he", "she", "they", "you", "your",
+    "if", "when", "please", "thanks", "thank", "hi", "hello", "dear", "draft", "summarise", "summarize", "write",
+    "can", "could", "and", "but", "also", "so", "then", "there", "here", "what", "how", "why", "who", "is", "are",
+    "was", "were", "do", "does", "did", "on", "in", "at", "for", "to", "from", "with", "by", "as", "of", "my",
+}
+_PII_WORDS = re.compile(
+    r"(?i)salary|diagnos|medic|allerg|patient|disciplin|resign|perform|passport|visa|account|iban|invoice|"
+    r"contract|client|confidential|secret|codename|project|ssn|tax"
+)
+
+
+def _pii_worth_asking(sentence: str) -> bool:
+    words = sentence.split()
+    if any(ch.isdigit() for ch in sentence) or "@" in sentence:
+        return True
+    if any(word[:1].isupper() for word in words[1:]):
+        return True
+    if words and words[0][:1].isupper() and words[0].strip(".,:;!?()").lower() not in _PII_STARTERS:
+        return True
+    return bool(_PII_WORDS.search(sentence))
 
 
 def detect(text: str) -> list[dict]:
@@ -291,12 +445,17 @@ def detect(text: str) -> list[dict]:
     if not _enabled() or not is_loaded() or not text.strip():
         return []
 
+    started = time.perf_counter()
     seen: set[tuple[str, str]] = set()
     results: list[dict] = []
     chunks = [chunk for chunk in _chunk(text) if chunk.strip()]
-    failed = 0
+    failed = asked = 0
     for chunk in chunks:
-        entities = _detect_chunk(chunk)
+        worth = "\n".join(sentence for sentence in numbered_lines(chunk) if _pii_worth_asking(sentence))
+        if not worth.strip():
+            continue
+        asked += 1
+        entities = _detect_chunk(worth)
         if entities is None:
             failed += 1
             continue
@@ -307,8 +466,12 @@ def detect(text: str) -> list[dict]:
             seen.add(key)
             results.append(entity)
 
-    if chunks and failed == len(chunks):
-        raise GemmaOutputError("Gemma returned invalid JSON for every chunk.")
+    logger.info(
+        "[private-data] %d chunk(s): asked Gemma about %d, skipped %d with nothing contextual; %d item(s) found in %.1fs",
+        len(chunks), asked, len(chunks) - asked, len(results), time.perf_counter() - started,
+    )
+    if asked and failed == asked:
+        raise GemmaOutputError("Gemma gave no usable answer for any chunk.")
     return results
 
 

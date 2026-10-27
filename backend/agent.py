@@ -122,6 +122,7 @@ def get_run(run_id: str) -> dict | None:
 
 def _execute(run: dict) -> None:
     started = time.perf_counter()
+    logger.info("[agent] run %s started (%s)", run["run_id"], run["mode"])
     status, error = "done", None
     try:
         _loop(_Context(run))
@@ -150,6 +151,11 @@ def _finish(run: dict, status: str, error: str | None, started: float) -> None:
             outbox_delta=outbox, shell_delta=shell, summary=summary, error=error,
             ms=round((time.perf_counter() - started) * 1000), status=status,
         )
+    logger.info(
+        "[agent] run %s (%s) %s in %.1fs: %d tool call(s), %d blocked, %d finding(s), canary leaked: %s, attacker reached: %s",
+        run["run_id"], run["mode"], status, time.perf_counter() - started, summary["tool_calls"], summary["blocked"],
+        summary["findings"], summary["leaked_canary"], summary["attacker_reached"],
+    )
 
 
 def _loop(ctx: _Context) -> None:
@@ -253,6 +259,8 @@ def _handle_call(ctx: _Context, call: dict, model_ms: int) -> None:
 
     started = time.perf_counter()
     decision, args_executed = _decide(ctx, name, args)
+    if decision["decision"] != "allow":
+        logger.info("[gate] run %s (%s): %s %s (%s): %s", ctx.run_id, ctx.mode, name, decision["decision"].upper(), decision["rule"], decision["reason"])
     _add_step(
         ctx, "tool_call", tool=name, args_cloud_saw=args, args_executed=args_executed, decision=decision,
         ms=round((time.perf_counter() - started) * 1000), model_ms=model_ms,

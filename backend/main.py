@@ -23,7 +23,7 @@ from pydantic import BaseModel  # noqa: E402
 from backend import agent, cloud, firewall, gemma, pipeline, tools_sandbox  # noqa: E402
 from backend.cloud import CLOUD_SYSTEM_PROMPT  # noqa: E402
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)-7s %(name)s: %(message)s", datefmt="%H:%M:%S")
 
 
 class _QuietPolling(logging.Filter):

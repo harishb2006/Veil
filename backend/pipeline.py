@@ -205,6 +205,12 @@ def scan(text: str, session: Session | None = None, origin: str = USER_ORIGIN) -
         while len(SESSIONS) > MAX_SESSIONS:
             SESSIONS.pop(next(iter(SESSIONS)))
 
+    logger.info(
+        "[inner-door] origin=%s, %d chars: %d value(s) hidden (%d by rules, %d by Gemma), Gemma %s, %d ms",
+        origin, len(text), len(entities), sum(1 for e in entities if e["source"] == "rule"),
+        sum(1 for e in entities if e["source"] == "gemma"), "used" if gemma_used else "not used",
+        round((time.perf_counter() - total_started) * 1000),
+    )
     return {
         "scan_id": session.scan_id,
         "risk": risk.overall_risk([e["type"] for e in entities]),

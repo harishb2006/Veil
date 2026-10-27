@@ -254,6 +254,14 @@ cd frontend && npm install && npm run dev            # http://localhost:3000
 
 With `GEMMA_ENABLED=false` and the scripted agent, VEIL needs no model and no network. Open `/agent` and press **R** to run the poisoned-page task Raw and Full side by side. Append `?mock=1` to run the UI from bundled demo data without a backend.
 
+**On Windows, one command does it all:** `.\scripts\start.ps1` frees ports 8000 and 3000, builds the web console and opens a backend window and a frontend window with their logs (add `-Fast` for rules-only, `-NoBuild` to skip the build). `.\scripts\stop.ps1` stops both. With Gemma on, run `.venv\Scripts\python.exe scripts\warm_cache.py` once before a demo: it runs every scenario and sample page so Gemma's answers come from the cache during the live run.
+
+**Logs.** The backend prints one line per Gemma call (`[injection]` or `[private-data]`, time, cache hit or miss), one per scan (`[outer-door]`, `[inner-door]`), every gate block (`[gate]`) and each agent run's result (`[agent]`). The UI's polling is left out.
+
+### Browser extension
+
+`extension/` is a Chrome/Edge extension that scans the page you are on through the local backend and shows the findings, with which ones Gemma found. Load it with **Load unpacked** on `chrome://extensions`; see [extension/README.md](extension/README.md). A demo page with a hidden instruction is served at `http://localhost:3000/demo/aurora-x2.html`.
+
 ### Environment variables (`.env.example`)
 
 | Variable | Purpose |
@@ -262,6 +270,7 @@ With `GEMMA_ENABLED=false` and the scripted agent, VEIL needs no model and no ne
 | `AGENT_PROVIDER` | `scripted` forces the demo agent. |
 | `INJECTION_MAX_CHUNKS` | Max Gemma chunks per tool result (default 3). |
 | `GEMMA_ENABLED`, `GEMMA_MODEL_ALIAS` | Toggle Gemma; Foundry Local alias. |
+| `GEMMA_CACHE`, `GEMMA_CACHE_FILE` | Gemma answer cache, on by default; `false` turns it off. File default `.cache/gemma_cache.jsonl` (git-ignored). |
 | `CORS_ORIGINS`, `CORS_ORIGIN_REGEX` | Origins allowed to call the backend. |
 | `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_USE_MOCK` | Frontend backend URL; force mock data. |
 
