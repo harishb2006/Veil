@@ -24,6 +24,10 @@ python -m backend.mcp_server                        # waits on stdin; Ctrl+C to 
 
 The server can be started either as `python -m backend.mcp_server` from the repo root or as `python /abs/path/backend/mcp_server.py` from anywhere. The `.env` in the repo root is loaded in both cases. All logs go to stderr (stdout carries the protocol).
 
+## Demo
+
+`demo/mcp/` has a scripted demo that drives the server with no AI client (`.venv/bin/python demo/mcp/run_demo.py`) and a Claude Code folder that wires VEIL in automatically. See `demo/mcp/README.md`.
+
 ## Claude Desktop
 
 Edit `claude_desktop_config.json` (Settings, Developer, Edit Config) and restart Claude Desktop. Use **absolute paths**: Claude Desktop's documented server fields are `command`, `args` and `env`, and we could not verify that `cwd` is honoured, so the configs below do not depend on it.
