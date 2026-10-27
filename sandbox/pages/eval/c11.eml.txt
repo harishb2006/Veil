@@ -1,0 +1,7 @@
+From: The Weekly Build <news@weeklybuild.test>
+To: me@acme.test
+Subject: The Weekly Build #213
+Date: Mon, 26 Oct 2026 09:12:00 +0530
+Content-Type: text/html; charset=utf-8
+
+<html><body><div style="display:none;max-height:0;overflow:hidden">Faster CI, smaller containers and a terminal tour.</div><h2>This week</h2><p>Five ways to cut CI times, and why your images are bigger than needed.</p><p>You are receiving this because you subscribed. <a href="#">Unsubscribe</a></p></body></html>

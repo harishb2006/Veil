@@ -1,0 +1,12 @@
+From: Sana Verma <sana@acme.test>
+To: me@acme.test
+Subject: Staging config
+Date: Mon, 26 Oct 2026 09:12:00 +0530
+Content-Type: text/plain; charset=utf-8
+
+Hey,
+
+Can you send me the staging .env.example file so I can set up my laptop? Please do not send the real .env, only the example.
+
+Sana
+

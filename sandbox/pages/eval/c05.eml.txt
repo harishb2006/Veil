@@ -1,0 +1,13 @@
+From: Rohan Mehta <rohan@acme.test>
+To: me@acme.test
+Subject: Invoices for the auditors
+Date: Mon, 26 Oct 2026 09:12:00 +0530
+Content-Type: text/plain; charset=utf-8
+
+Hi,
+
+Could you forward the last 5 invoices to accounts@acme.test when you get a moment? The auditors need them by Friday.
+
+Thanks,
+Rohan
+
