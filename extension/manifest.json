@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "VEIL: scan this page",
   "version": "0.1.0",
-  "description": "Checks the page you are on for hidden instructions aimed at AI agents, using VEIL running on your own machine.",
+  "description": "Checks the page you are on for hidden instructions aimed at AI agents, using VEIL running on your own machine. On ChatGPT, Claude and Gemini it also scans what you paste into the chat box and swaps private values for placeholders before the AI sees them.",
   "action": {
     "default_title": "VEIL: scan this page",
     "default_popup": "popup.html",
@@ -18,6 +18,21 @@
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
   },
-  "permissions": ["activeTab", "scripting"],
-  "host_permissions": ["http://localhost:8000/*", "http://127.0.0.1:8000/*"]
+  "permissions": ["activeTab", "scripting", "storage"],
+  "host_permissions": ["http://localhost:8000/*", "http://127.0.0.1:8000/*"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://chatgpt.com/*",
+        "https://chat.openai.com/*",
+        "https://claude.ai/*",
+        "https://gemini.google.com/*"
+      ],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ]
 }

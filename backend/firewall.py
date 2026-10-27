@@ -67,6 +67,30 @@ _CUES = re.compile(
 )
 _MAX_CANDIDATE_LINES = 12
 
+# What makes a Gemma finding worth acting on. A small model says "yes" to many ordinary sentences (a screen-reader
+# alert, "Please donate.", a request between colleagues), so Gemma alone can only raise a finding to high when the
+# text is addressed to an AI, tries to override instructions, hides itself from the user, or targets secrets or
+# commands. Without one of these, Gemma's finding is kept as low: reported, but nothing is cut or quarantined.
+# Mentioning AI is not enough (a page can be about AI); the text has to address one: "AI assistant reading this
+# page:", "Dear AI,", "Note for the agent:", "you are an AI".
+_AI_WORD = r"(?:ai|a\.i\.|assistant|agent|llm|chatgpt|claude|gemini|copilot|language model|model)s?"
+_STRONG_CUES = re.compile(
+    r"(?i)(?:\b" + _AI_WORD + r"\b\s*[:,]|"
+    r"\b(?:dear|hey|hi|hello|attention|note (?:to|for))\b[^.!?\n]{0,30}\b" + _AI_WORD + r"\b|"
+    r"\b" + _AI_WORD + r"\s+(?:reading|processing|handling|summari[sz]ing|browsing|parsing|reviewing)\b|"
+    r"\b(?:you are|as) an? (?:ai|assistant|language model)\b|\bsystem prompt\b|"
+    r"\b(?:(?:ignore|disregard|override|forget)\b.{0,40}\b(?:instruction|direction|rule|prompt)s?|"
+    r"do not (?:tell|mention|reveal|inform)|don't (?:tell|mention|reveal|inform)|tell no one|without telling|"
+    r"api[ _-]?keys?|passwords?|secrets?|credentials?|tokens?|private keys?|exfiltrate|curl|wget|bash|"
+    r"powershell|run the command|execute)\b|\.env\b|\|\s*sh\b)"
+)
+
+
+def _gemma_severity(text: str, severity: str) -> str:
+    if severity == "low" or _STRONG_CUES.search(text):
+        return severity
+    return "low"
+
 
 def _suspicious_sentences(visible: str) -> list[str]:
     """The sentences of the visible text the rules find worth asking Gemma about, in order (exact substrings)."""
@@ -83,7 +107,12 @@ def _gemma_units(segments: list[dict], visible: str, budget: int) -> list[tuple[
 
     units: list[tuple[str, str | None]] = []
     for segment in segments:
-        units.extend((chunk, segment["kind"]) for chunk in gemma._chunk(segment["text"]) if chunk.strip())
+        # Hidden text is everywhere on real pages (screen-reader labels, alerts, HTML comments); only hidden text
+        # that the rules find suspicious is worth a model call.
+        units.extend(
+            (chunk, segment["kind"]) for chunk in gemma._chunk(segment["text"])
+            if chunk.strip() and (inject_rules.phrase_score(chunk) > 0 or _CUES.search(chunk))
+        )
     suspicious = _suspicious_sentences(visible)
     if suspicious:
         units.extend((chunk, None) for chunk in gemma._chunk("\n".join(suspicious)) if chunk.strip())
@@ -119,7 +148,7 @@ def _gemma_findings(segments: list[dict], visible: str) -> tuple[list[dict], boo
                 # Text found inside a hidden segment keeps that segment's kind: hidden + imperative.
                 "kind": segment_kind or item["kind"],
                 "text": item["text"],
-                "severity": item["severity"],
+                "severity": _gemma_severity(item["text"], item["severity"]),
                 "reason": reason,
                 "hidden": segment_kind is not None,
             })

@@ -59,6 +59,10 @@ DEFAULT_CORS_ORIGIN_REGEX = r"chrome-extension://[a-p]{32}"
 async def lifespan(_app: FastAPI):
     # Gemma takes ~47 s to load; load it in the background so /health answers
     # immediately and /scan can return 503 until it is ready.
+    if gemma.remote_url():
+        # The backend is the process that owns Gemma; pointing it at another backend (or itself) would loop.
+        logging.getLogger("veil.api").warning("Ignoring GEMMA_REMOTE_URL in the backend; it is meant for the MCP server.")
+        os.environ.pop("GEMMA_REMOTE_URL", None)
     gemma.start_background_load()
     yield
     gemma.shutdown()
@@ -106,6 +110,11 @@ class FirewallScanRequest(BaseModel):
     tool: str = "paste"
 
 
+class GemmaRunRequest(BaseModel):
+    kind: str
+    text: str
+
+
 def _get_session(scan_id: str) -> pipeline.Session:
     session = pipeline.SESSIONS.get(scan_id)
     if session is None:
@@ -123,6 +132,27 @@ def _check_text(text: str) -> None:
 @app.get("/")
 def read_root() -> dict[str, str]:
     return {"message": "API is running"}
+
+
+@app.post("/gemma/run")
+def gemma_run(body: GemmaRunRequest) -> dict:
+    """Run one of VEIL's two Gemma prompts for a local VEIL MCP server, so it can share this process's model.
+
+    Only the injection and private-data prompts can run, with their own output caps; arbitrary prompts are refused.
+    Answers are cached like any other Gemma call.
+    """
+
+    prompts = {
+        "injection": (gemma.INJECTION_SYSTEM_PROMPT, gemma.INJECTION_MAX_TOKENS),
+        "private-data": (gemma.DETECT_SYSTEM_PROMPT, gemma.DETECT_MAX_TOKENS),
+    }
+    if body.kind not in prompts:
+        raise HTTPException(status_code=400, detail="kind must be 'injection' or 'private-data'.")
+    _check_text(body.text)
+    if not gemma.is_loaded():
+        raise HTTPException(status_code=503, detail="Gemma is not loaded yet.")
+    system, cap = prompts[body.kind]
+    return {"answer": gemma.generate(system, body.text, max_tokens=cap)}
 
 
 @app.get("/health")

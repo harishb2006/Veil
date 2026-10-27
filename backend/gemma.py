@@ -58,12 +58,52 @@ def model_alias() -> str:
     return os.getenv("GEMMA_MODEL_ALIAS", "gemma-4-e2b-it")
 
 
+# --------------------------------------------------------------------------- shared Gemma
+#
+# GEMMA_REMOTE_URL (for example http://localhost:8000) makes this process use the Gemma already loaded by a running
+# VEIL backend, through its POST /gemma/run endpoint, instead of loading a second multi-gigabyte copy. The MCP server
+# uses this so the browser extension and a coding agent share one model. Only VEIL's own two prompts can be run.
+
+_REMOTE_HEALTH_TTL_S = 10.0
+_remote_checked_at = 0.0
+_remote_ready = False
+
+
+def remote_url() -> str:
+    return os.getenv("GEMMA_REMOTE_URL", "").strip().rstrip("/")
+
+
+def _remote_request(path: str, body: dict | None = None, timeout: float = 10) -> dict:
+    import urllib.request
+
+    data = json.dumps(body).encode("utf-8") if body is not None else None
+    request = urllib.request.Request(remote_url() + path, data=data, headers={"Content-Type": "application/json"})
+    with urllib.request.urlopen(request, timeout=timeout) as response:
+        return json.load(response)
+
+
+def _remote_is_ready() -> bool:
+    global _remote_checked_at, _remote_ready
+    now = time.monotonic()
+    if now - _remote_checked_at > _REMOTE_HEALTH_TTL_S:
+        _remote_checked_at = now
+        try:
+            _remote_ready = _remote_request("/health", timeout=3).get("gemma_status") == "loaded"
+        except Exception:
+            _remote_ready = False
+    return _remote_ready
+
+
 def is_loaded() -> bool:
+    if remote_url():
+        return _enabled() and _remote_is_ready()
     return _status == "loaded"
 
 
 def status() -> str:
     """Return "disabled", "not_loaded", "loading", "loaded" or "failed"."""
+    if remote_url() and _enabled():
+        return "loaded" if _remote_is_ready() else "not_loaded"
     return _status
 
 
@@ -71,6 +111,11 @@ def start_background_load() -> threading.Thread:
     """Run load() in a daemon thread so the API can answer while Gemma loads (~47 s)."""
 
     global _status
+    if remote_url():
+        logger.info("Using the Gemma already loaded by the VEIL backend at %s; not loading a second copy.", remote_url())
+        thread = threading.Thread(target=lambda: None, name="gemma-remote", daemon=True)
+        thread.start()
+        return thread
     if _enabled() and _status in {"not_loaded", "failed"}:
         _status = "loading"
     thread = threading.Thread(target=load, name="gemma-load", daemon=True)
@@ -262,6 +307,14 @@ def generate(system: str, user: str, max_tokens: int = 512, temperature: float =
         raise RuntimeError("Gemma is not loaded.")
 
     label = _call_label(system)
+    if remote_url():
+        if label not in {"injection", "private-data"}:
+            raise RuntimeError("Only VEIL's own prompts can run on the shared Gemma.")
+        started = time.perf_counter()
+        answer = str(_remote_request("/gemma/run", {"kind": label, "text": user}, timeout=300).get("answer", ""))
+        logger.info("[%s] backend's Gemma answered in %.1fs (%d chars in)", label, time.perf_counter() - started, len(user))
+        return answer
+
     key = None
     if _cache_enabled():
         _cache_load()

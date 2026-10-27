@@ -49,24 +49,30 @@ function el(tag, className, text) {
 
 function render(result, seconds) {
   const verdict = $("verdict");
+  const serious = result.findings.filter((f) => f.severity !== "low");
+  // Low findings are notes (ordinary hidden UI text, a sentence Gemma was unsure about): VEIL reports them but does
+  // not act on them, so a page with only low findings reads as clean.
+  const shown = result.verdict !== "QUARANTINED" && serious.length === 0 ? "ALLOW" : result.verdict;
   const labels = {
     ALLOW: "Looks clean: nothing aimed at an AI agent",
-    SANITIZED: "Hidden instructions found and removed",
+    SANITIZED: "Instructions aimed at AI found and removed",
     QUARANTINED: "Quarantined: an agent should not read this page",
   };
-  verdict.textContent = labels[result.verdict] || result.verdict;
-  verdict.className = `verdict ${String(result.verdict).toLowerCase()}`;
+  verdict.textContent = labels[shown] || shown;
+  verdict.className = `verdict ${String(shown).toLowerCase()}`;
 
   const timings = result.timings_ms || {};
-  const byGemma = result.findings.filter((f) => f.tier === "gemma").length;
+  const byGemma = serious.filter((f) => f.tier === "gemma").length;
+  const notes = result.findings.length - serious.length;
   $("meta").textContent =
-    `${result.findings.length} finding(s), ${byGemma} by Gemma · ` +
+    `${serious.length} finding(s), ${byGemma} by Gemma${notes ? `, ${notes} low-risk note(s)` : ""} · ` +
     `${result.gemma_used ? `Gemma ${((timings.gemma || 0) / 1000).toFixed(1)} s` : "Gemma not used"} · ` +
     `total ${seconds.toFixed(1)} s`;
 
   const list = $("findings");
   list.replaceChildren();
-  for (const f of result.findings) {
+  const ordered = [...serious, ...result.findings.filter((f) => f.severity === "low")];
+  for (const f of ordered) {
     const item = el("li");
     const top = el("div", "top");
     top.append(
@@ -85,9 +91,10 @@ function render(result, seconds) {
 }
 
 async function setBadge(tabId, result) {
-  const count = result.findings.length;
-  const text = result.verdict === "ALLOW" ? "OK" : String(count);
-  const color = result.verdict === "ALLOW" ? "#15803d" : result.verdict === "QUARANTINED" ? "#b91c1c" : "#b45309";
+  const count = result.findings.filter((f) => f.severity !== "low").length;
+  const clean = result.verdict !== "QUARANTINED" && count === 0;
+  const text = clean ? "OK" : String(count);
+  const color = clean ? "#15803d" : result.verdict === "QUARANTINED" ? "#b91c1c" : "#b45309";
   try {
     await chrome.action.setBadgeText({ tabId, text });
     await chrome.action.setBadgeBackgroundColor({ tabId, color });

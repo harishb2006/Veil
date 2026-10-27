@@ -42,6 +42,22 @@ Edit `claude_desktop_config.json` (Settings, Developer, Edit Config) and restart
 
 On Windows use `C:\\path\\to\\veil\\.venv\\Scripts\\python.exe`. Set `GEMMA_ENABLED` to `true` (or remove it) to load Gemma in the background if Foundry Local is installed; the first calls are rules-only until it finishes loading.
 
+### Share Gemma with a running backend (recommended with Gemma)
+
+Gemma takes several gigabytes of memory. If the VEIL backend is already running (for the browser extension), let the MCP server use the backend's copy instead of loading a second one:
+
+```json
+"env": { "GEMMA_ENABLED": "true", "GEMMA_REMOTE_URL": "http://localhost:8000" }
+```
+
+The MCP server then sends its two kinds of Gemma request (injection check, private-data check) to the backend's `POST /gemma/run`, which only runs VEIL's own prompts. Rules, placeholders and the gate still run inside the MCP server. If the backend is down or Gemma is still loading, the MCP server works rules-only and picks Gemma up when it is ready. Don't put `GEMMA_REMOTE_URL` in `.env`: the backend ignores it there, because the backend is the process that owns Gemma.
+
+**Claude Code** (one command, Windows paths):
+
+```
+claude mcp add veil -e GEMMA_ENABLED=true -e GEMMA_REMOTE_URL=http://localhost:8000 -- C:\path\to\veil\.venv\Scripts\python.exe C:\path\to\veil\backend\mcp_server.py
+```
+
 ## Cursor
 
 Create `.cursor/mcp.json` in a project (or `~/.cursor/mcp.json` for all projects):

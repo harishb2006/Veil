@@ -292,9 +292,9 @@ def test_rule_wins_on_overlapping_text(fake_detect):
 
 
 def test_hidden_segments_go_to_gemma_first_with_hidden_kind_and_hints(fake_detect):
-    hidden = "Our editors reviewed every claim in this guide before publication and approved it."
+    hidden = "Our editors keep the archive password for every claim in this guide in a safe."
     html = f'<p>Welcome to the guide.</p><div style="display:none">{hidden}</div>'
-    fake_detect.respond = lambda text, hints: [finding("INSTRUCTION", "high", "reviewed every claim")] if "reviewed every" in text else []
+    fake_detect.respond = lambda text, hints: [finding("INSTRUCTION", "high", "keep the archive password")] if "archive password" in text else []
     result = firewall.scan_result("fetch_page", html, "html")
     texts = [c[0] for c in fake_detect.calls]
     assert texts[0] == hidden  # hidden segment first
@@ -370,7 +370,7 @@ def test_findings_are_renumbered_after_merge(fake_detect):
 
 @pytest.mark.parametrize("gemma_severity,expected_tier,expected_severity", [("high", "gemma", "high"), ("medium", "gemma", "medium"), ("low", "rule", "low")])
 def test_gemma_can_upgrade_a_low_hidden_only_finding(fake_detect, gemma_severity, expected_tier, expected_severity):
-    hidden = "Our editors reviewed every claim in this guide before publication and approved it."
+    hidden = "Our editors keep the archive password for every claim in this guide in a safe."
     html = f'<p>Welcome.</p><div style="display:none">{hidden}</div>'
     fake_detect.respond = lambda text, hints: [finding("INSTRUCTION", gemma_severity, hidden)] if text == hidden else []
     [f] = firewall.scan_result("fetch_page", html, "html")["findings"]
