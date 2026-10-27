@@ -176,7 +176,10 @@ def test_read_file_blocks_symlink_escape(tmp_path, monkeypatch):
     secret.write_text("top secret")
     folder = tmp_path / "files"
     folder.mkdir()
-    (folder / "link.txt").symlink_to(secret)
+    try:
+        (folder / "link.txt").symlink_to(secret)
+    except OSError as exc:  # Windows without Developer Mode or admin cannot create symlinks
+        pytest.skip(f"cannot create symlinks here: {exc}")
     monkeypatch.setattr(sb, "FILES_DIR", folder)
     result = sb.run_tool("read_file", {"path": "link.txt"})
     assert result["ok"] is False and "top secret" not in result["content"]

@@ -22,7 +22,7 @@ REMOVED_VISIBLE = "[REMOVED BY AIRLOCK: instruction aimed at AI]"
 
 _SEVERITY_RANK = {"low": 0, "medium": 1, "high": 2}
 # Hidden kinds whose text never reaches visible_text, so there is nothing to cut out of it.
-_NOT_IN_VISIBLE = {"HIDDEN_CSS", "COMMENT", "ATTR", "UNICODE_TAG"}
+_NOT_IN_VISIBLE = {"HIDDEN_CSS", "COMMENT", "ATTR", "UNICODE_TAG", "VARIATION_SELECTOR"}
 _MAX_REASON_WORDS = 8
 
 

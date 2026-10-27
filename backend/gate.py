@@ -6,7 +6,11 @@ planted by something the agent read (`untrusted:<tool>`). Real values are rehydr
 placeholders, and secrets are never rehydrated at all.
 """
 
+import ipaddress
+import math
 import re
+import socket
+from collections import Counter
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
@@ -23,7 +27,8 @@ DEFAULT_POLICY = {
     "risky_tools": ["send_email", "run_shell"],
     "contacts": [],
     "allowed_hosts": [],
-    "rules": ["secrets_never_leave", "recipient_provenance", "shell_when_tainted", "exfil_urls"],
+    "drop_sites": [],
+    "rules": ["secrets_never_leave", "recipient_provenance", "egress", "shell_when_tainted", "exfil_urls"],
 }
 
 URL_RE = re.compile(r"https?://[^\s\"'<>)\]]+", re.IGNORECASE)
@@ -163,6 +168,99 @@ def _exfil_urls(args: dict, tainted: bool, policy: dict) -> dict | None:
     return None
 
 
+# --- egress: where the data is going, whatever the run has read -------------------------------------------
+
+_INTERNAL_NETS = [ipaddress.ip_network(n) for n in (
+    "10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16", "127.0.0.0/8", "169.254.0.0/16", "0.0.0.0/8", "100.64.0.0/10",
+    "::1/128", "::/128", "fc00::/7", "fe80::/10",
+)]
+_METADATA_HOSTS = {"169.254.169.254", "169.254.170.2", "metadata.google.internal", "metadata", "instance-data", "fd00:ec2::254"}
+_INTERNAL_NAMES = {"localhost", "ip6-localhost", "ip6-loopback"}
+_NUMERIC_HOST_RE = re.compile(r"(?:0x[0-9a-f]+|\d+)(?:\.(?:0x[0-9a-f]+|\d+)){0,3}", re.IGNORECASE)
+# Bare hosts in a shell command (no http://): dotted IPs, 0x-hex IPs and host-looking words, never e-mail domains.
+_BARE_HOST_RE = re.compile(r"(?<![@\w./:=-])(?:0x[0-9a-f]{6,8}|\d{1,3}(?:\.\d{1,3}){3}|[a-z0-9][a-z0-9-]*(?:\.[a-z0-9-]+)+)(?![\w@-])", re.IGNORECASE)
+_DNS_LOOKUP_RE = re.compile(r"\b(?:nslookup|dig|host|ping|resolveip)\s+(?:[-+]\S+\s+)*([^\s;|&'\"]+)", re.IGNORECASE)
+_EGRESS_URL_RE = re.compile(r"https?://(?:\[[0-9a-f:.]+\]|[^\s\"'<>)\]/?#]+)[^\s\"'<>)\]]*", re.IGNORECASE)
+TUNNEL_LABEL_MIN = 24
+TUNNEL_ENTROPY_MIN = 3.5
+
+
+def _expand_placeholders(text: str, session: Session) -> str:
+    """Put real values back for non-secret placeholders, so the check sees the host the agent would reach."""
+
+    def real(match: re.Match) -> str:
+        placeholder = match.group(0)
+        if session.ph_type.get(placeholder) in REDACTED_TYPES:
+            return placeholder
+        return session.ph_to_value.get(placeholder, placeholder)
+
+    return PLACEHOLDER_RE.sub(real, text)
+
+
+def _address(host: str):
+    """The IP a host spells (dotted, decimal 2130706433, hex 0x7f000001, octal, IPv6), or None for a name."""
+
+    host = host.strip("[]").lower()
+    try:
+        return ipaddress.ip_address(host)
+    except ValueError:
+        pass
+    if _NUMERIC_HOST_RE.fullmatch(host):
+        try:
+            return ipaddress.ip_address(socket.inet_aton(host))
+        except OSError:
+            return None
+    return None
+
+
+def _entropy(label: str) -> float:
+    return -sum(n / len(label) * math.log2(n / len(label)) for n in Counter(label).values())
+
+
+def _on_list(host: str, entries: set[str]) -> str | None:
+    """The entry that `host` equals or is a subdomain of."""
+
+    return next((entry for entry in entries if host == entry or host.endswith("." + entry)), None)
+
+
+def _judge_host(host: str, *, tunnel: bool, allowed: set[str], drop_sites: set[str]) -> str | None:
+    host = host.lower().rstrip(".")
+    if not host or _on_list(host, allowed):
+        return None
+    address = _address(host)
+    if address is not None and getattr(address, "ipv4_mapped", None):
+        address = address.ipv4_mapped
+    if host in _METADATA_HOSTS or (address is not None and str(address) in _METADATA_HOSTS):
+        return f"{host} is the cloud metadata service — a request there can steal this machine's credentials."
+    if host in _INTERNAL_NAMES or host.endswith(".localhost") or (address and any(address in net for net in _INTERNAL_NETS)):
+        return f"{host} is an internal or loopback address — a request there can reach private services (SSRF)."
+    site = _on_list(host, drop_sites)
+    if site:
+        return f"{site} is a known anonymous drop site — data sent there is public."
+    if tunnel and address is None:
+        for label in host.split(".")[:-2]:
+            if len(label) >= TUNNEL_LABEL_MIN and _entropy(label) >= TUNNEL_ENTROPY_MIN:
+                return f"{host} looks like a DNS-tunnelling address (long random subdomain) — it can smuggle data out in the lookup."
+    return None
+
+
+def _egress(args: dict, session: Session, policy: dict) -> dict | None:
+    """Block SSRF / metadata targets, anonymous drop sites and DNS-tunnelling hosts, tainted or not."""
+
+    allowed = {str(h).strip().lower() for h in policy.get("allowed_hosts", [])}
+    drops = {str(h).strip().lower() for h in policy.get("drop_sites", [])}
+    for raw in _strings(args):
+        text = _expand_placeholders(raw, session)
+        candidates = [((urlparse(m.group(0).rstrip(".,;:!?")).hostname or ""), True) for m in _EGRESS_URL_RE.finditer(text)]
+        candidates += [(m.group(0), False) for m in _BARE_HOST_RE.finditer(_EGRESS_URL_RE.sub(" ", text))]
+        candidates += [(m.group(1), True) for m in _DNS_LOOKUP_RE.finditer(text)]
+        for host, tunnel in candidates:
+            reason = _judge_host(host, tunnel=tunnel, allowed=allowed, drop_sites=drops)
+            if reason:
+                return _decision(BLOCK, reason, "egress")
+    return None
+
+
 def check(tool: str, args: dict, *, tainted: bool, session: Session, policy: dict | None = None) -> dict:
     """Decide whether the agent may make this call: {"decision": allow|block|needs_approval, "reason", "rule"}."""
 
@@ -175,6 +273,7 @@ def check(tool: str, args: dict, *, tainted: bool, session: Session, policy: dic
     checks = (
         ("secrets_never_leave", lambda: _secrets_never_leave(args, session)),
         ("recipient_provenance", lambda: _recipient_provenance(tool, args, tainted, session, policy)),
+        ("egress", lambda: _egress(args, session, policy)),
         ("shell_when_tainted", lambda: _shell_when_tainted(tool, tainted)),
         ("exfil_urls", lambda: _exfil_urls(args, tainted, policy)),
     )

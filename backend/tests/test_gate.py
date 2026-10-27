@@ -216,9 +216,9 @@ def test_allowed_placeholders_drives_rehydration(session):
     assert out == {"to": "[EMAIL_2]", "cc": "priya@acme.test", "body": "[API_KEY_1]"}
 
 
-def test_shipped_policy_file_loads_with_all_four_rules():
+def test_shipped_policy_file_loads_with_all_five_rules():
     policy = gate.load_policy()
-    assert set(policy["rules"]) == {"secrets_never_leave", "recipient_provenance", "shell_when_tainted", "exfil_urls"}
+    assert set(policy["rules"]) == {"secrets_never_leave", "recipient_provenance", "egress", "shell_when_tainted", "exfil_urls"}
     assert {"send_email", "run_shell"} == set(policy["risky_tools"])
     assert "priya@acme.test" in policy["contacts"]
     assert "fetch_page" in policy["untrusted_sources"]

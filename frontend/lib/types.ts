@@ -68,6 +68,7 @@ export type FindingKind =
   | "ATTR"
   | "ZERO_WIDTH"
   | "UNICODE_TAG"
+  | "VARIATION_SELECTOR"
   | "BIDI"
   | "BASE64"
   | "INSTRUCTION"
