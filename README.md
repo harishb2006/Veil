@@ -1,5 +1,5 @@
-# Veil
 # VEIL
+
 ### Inspect what AI agents read. Control what they do.
 
 VEIL is a runtime security layer for AI agents that helps prevent untrusted content from triggering unauthorized tool actions. It inspects potentially malicious inputs, evaluates proposed actions against explicit security policies, and records decisions in an auditable trail.
