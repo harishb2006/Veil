@@ -57,14 +57,17 @@ export function StatusPill() {
   return (
     <div className="group/status relative">
       <button type="button" className="inline-flex items-center gap-2 rounded-md px-1.5 py-1 text-sm text-mist" aria-describedby="backend-status-details">
-        <span aria-hidden className={`h-1.5 w-1.5 rounded-full ${TONES[tone].dot}`} />
+        <span aria-hidden className="relative flex h-1.5 w-1.5">
+          {tone === "safe" && <span className={`absolute inset-0 animate-ping rounded-full opacity-70 ${TONES[tone].dot}`} />}
+          <span className={`relative h-1.5 w-1.5 rounded-full ${TONES[tone].dot}`} />
+        </span>
         <span className="hidden sm:inline">{label}</span>
         <span className="sm:hidden">Status</span>
       </button>
       <div
         id="backend-status-details"
         role="status"
-        className="pointer-events-none invisible absolute right-0 top-full z-40 mt-2 w-72 rounded-lg border border-line bg-hull p-3.5 opacity-0 shadow-[0_8px_24px_rgb(0_0_0/0.08)] transition group-focus-within/status:visible group-focus-within/status:opacity-100 group-hover/status:visible group-hover/status:opacity-100"
+        className="pointer-events-none invisible absolute right-0 top-full z-40 mt-2 w-72 rounded-lg border border-line bg-hull p-3.5 opacity-0 shadow-[0_8px_24px_rgb(0_0_0/0.5)] transition group-focus-within/status:visible group-focus-within/status:opacity-100 group-hover/status:visible group-hover/status:opacity-100"
       >
         <p className="mb-2 text-sm font-medium text-ink">Backend</p>
         <dl className="space-y-1.5">

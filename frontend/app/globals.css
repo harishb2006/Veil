@@ -1,20 +1,22 @@
 @import "tailwindcss";
 
-/* Airlock design tokens. Token names are shared by every page (bg-void, bg-hull, text-ink, border-line, ...).
-   Light, warm paper. Colour appears only where it carries meaning:
-   inner = privacy / placeholders, outer = hidden text / firewall findings, safe = allowed, threat = blocked / leaked. */
+/* Veil design tokens. Token names are shared by every page (bg-void, bg-hull, text-ink, border-line, ...).
+   Near-black console. Colour appears only where it carries meaning:
+   signal = brand / primary action, inner = privacy / placeholders, outer = hidden text / firewall findings,
+   safe = allowed, threat = blocked / leaked. */
 @theme {
-  --color-void: #fafaf8;
-  --color-hull: #ffffff;
-  --color-panel: #f3f3f0;
-  --color-line: #e5e4df;
-  --color-mist: #6b6a64;
-  --color-ink: #18181b;
-  --color-inner: #1d4ed8;
-  --color-outer: #b45309;
-  --color-gate: #3f3f46;
-  --color-safe: #15803d;
-  --color-threat: #b91c1c;
+  --color-void: #07080a;
+  --color-hull: #0d0f12;
+  --color-panel: #14171c;
+  --color-line: #232830;
+  --color-mist: #8a93a3;
+  --color-ink: #e7eaf0;
+  --color-signal: #3ef0b4;
+  --color-inner: #7aa7ff;
+  --color-outer: #f5b14a;
+  --color-gate: #a3a9b5;
+  --color-safe: #3ddc97;
+  --color-threat: #ff6b6b;
 
   --font-display: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
   --font-sans: "Inter Variable", ui-sans-serif, system-ui, "Segoe UI", Roboto, Arial, sans-serif;
@@ -22,7 +24,7 @@
 }
 
 html {
-  color-scheme: light;
+  color-scheme: dark;
   background: var(--color-void);
   scrollbar-color: var(--color-line) transparent;
   scroll-behavior: smooth;
@@ -42,12 +44,12 @@ body {
 }
 
 ::selection {
-  background: #dbeafe;
+  background: color-mix(in srgb, var(--color-signal) 30%, transparent);
   color: var(--color-ink);
 }
 
 :focus-visible {
-  outline: 2px solid var(--color-ink);
+  outline: 2px solid var(--color-signal);
   outline-offset: 2px;
   border-radius: 4px;
 }
@@ -67,13 +69,13 @@ body {
     text-wrap: balance;
   }
   h1 {
-    font-size: clamp(2.25rem, 5vw, 3rem);
-    line-height: 1.08;
-    letter-spacing: -0.035em;
+    font-size: clamp(2.5rem, 6vw, 4rem);
+    line-height: 1.04;
+    letter-spacing: -0.04em;
   }
   h2 {
-    font-size: clamp(1.75rem, 3.4vw, 2.25rem);
-    line-height: 1.15;
+    font-size: clamp(1.875rem, 3.6vw, 2.5rem);
+    line-height: 1.12;
     letter-spacing: -0.03em;
   }
   h3 {
@@ -93,12 +95,17 @@ body {
   }
 }
 
-/* Reusable page container: 1120px, 24px gutters. */
+/* Reusable page container: 1180px, 24px gutters. */
 .container-page {
   width: 100%;
-  max-width: calc(1120px + 48px);
+  max-width: calc(1180px + 48px);
   margin-inline: auto;
   padding-inline: 24px;
+}
+@media (max-width: 640px) {
+  .container-page {
+    padding-inline: 16px;
+  }
 }
 
 /* Prose width for running text. */
@@ -110,6 +117,56 @@ body {
 .scroll-thin {
   scrollbar-width: thin;
   scrollbar-color: var(--color-line) transparent;
+}
+
+/* Faint blueprint grid, faded out towards the edges. Used behind the hero. */
+.bg-grid {
+  background-image:
+    linear-gradient(to right, color-mix(in srgb, var(--color-line) 70%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in srgb, var(--color-line) 70%, transparent) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(ellipse 70% 60% at 50% 30%, #000 30%, transparent 75%);
+}
+
+/* Soft brand glow, placed absolutely behind hero content. */
+.glow-signal {
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--color-signal) 18%, transparent), transparent);
+  filter: blur(20px);
+}
+
+/* Card that lifts its border towards the brand colour on hover. */
+.card-hover {
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease,
+    transform 160ms ease;
+}
+.card-hover:hover {
+  border-color: color-mix(in srgb, var(--color-signal) 40%, var(--color-line));
+  transform: translateY(-2px);
+}
+
+/* Blinking terminal caret. */
+@keyframes caret {
+  50% {
+    opacity: 0;
+  }
+}
+.caret {
+  animation: caret 1s steps(1) infinite;
+}
+
+/* Slow horizontal scan line across the hero terminal. */
+@keyframes scan {
+  from {
+    transform: translateY(-100%);
+  }
+  to {
+    transform: translateY(1200%);
+  }
+}
+.scanline {
+  animation: scan 5s linear infinite;
 }
 
 /* Three-dot "waiting" indicator. */
@@ -139,6 +196,80 @@ body {
     transition-duration: 0.001ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* ---------- Motion layer. Every effect below is decorative: content is complete without it, and
+   prefers-reduced-motion (handled above) freezes all of it. ---------- */
+
+/* Cursor spotlight: <Providers> sets --mx / --my on whichever .spotlight element is under the pointer. */
+.spotlight {
+  --mx: -400px;
+  --my: -400px;
+  background-image: radial-gradient(
+    360px circle at var(--mx) var(--my),
+    color-mix(in srgb, var(--color-signal) 9%, transparent),
+    transparent 60%
+  );
+}
+
+/* Shimmering accent text. */
+@keyframes shimmer {
+  to {
+    background-position: -200% 0;
+  }
+}
+.text-shimmer {
+  background: linear-gradient(
+      100deg,
+      var(--color-signal) 0%,
+      var(--color-signal) 40%,
+      #c9fff0 50%,
+      var(--color-signal) 60%,
+      var(--color-signal) 100%
+    )
+    0 0 / 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: shimmer 6s linear infinite;
+}
+
+/* Marching dashes along the flow diagram's tracks. */
+@keyframes march {
+  to {
+    stroke-dashoffset: -20;
+  }
+}
+.track-march {
+  stroke-dasharray: 4 6;
+  animation: march 1.2s linear infinite;
+}
+
+/* Slow breathing ring around live nodes. */
+@keyframes breathe {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 0.9;
+  }
+}
+.breathe {
+  animation: breathe 2.6s ease-in-out infinite;
+}
+
+/* Infinite ticker: the track holds two copies of the items and slides by half its width. */
+@keyframes ticker {
+  to {
+    transform: translateX(-50%);
+  }
+}
+.ticker-track {
+  animation: ticker 40s linear infinite;
+}
+.ticker:hover .ticker-track {
+  animation-play-state: paused;
 }
 
 /* Firewall lab: a light sweeping across the page while the local model reads it. */

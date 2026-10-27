@@ -113,7 +113,7 @@ export function RunControls({
             type="button"
             onClick={onRunAll}
             disabled={!canRun}
-            className="inline-flex items-center gap-2 rounded-md bg-ink px-4 py-2 text-sm font-medium text-hull transition-colors hover:bg-ink/85 disabled:cursor-not-allowed disabled:opacity-40"
+            className="inline-flex items-center gap-2 rounded-md bg-signal px-4 py-2 text-sm font-medium text-void transition-colors hover:bg-signal/85 disabled:cursor-not-allowed disabled:opacity-40"
           >
             {busy && <Loader2 className="h-4 w-4 animate-spin" aria-hidden />}
             Run comparison

@@ -139,7 +139,7 @@ export function segmentFindings(raw: string, findings: Finding[]): FindingSegmen
 
 const REMOVED_RE = /\[REMOVED BY VEIL[^\]]*\]|\[VEIL QUARANTINED[^\]]*\]|<<UNTRUSTED[^>]*>>|<<\/UNTRUSTED>>/g;
 
-/** Split text into plain and Airlock marker segments (for "what the agent sees"). */
+/** Split text into plain and Veil marker segments (for "what the agent sees"). */
 export function segmentMarkers(text: string): { text: string; marker?: "removed" | "quarantined" | "datamark" }[] {
   const out: { text: string; marker?: "removed" | "quarantined" | "datamark" }[] = [];
   let pos = 0;

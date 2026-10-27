@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { HIDDEN_ORDER } from "@/lib/samples";
 import { Reveal } from "./Reveal";
+import { SectionHead } from "./SectionHead";
 
 const AGENT_LINES = [
   "Aurora X2 Wireless Headphones",
@@ -16,14 +17,11 @@ export function Attack() {
 
   return (
     <section id="attack" className="container-page scroll-mt-20 border-t border-line py-20">
-      <Reveal>
-        <h2 className="max-w-[26ch]">A product page that gives your agent orders</h2>
-        <p className="prose-measure mt-4 text-mist">
-          This is a simplified copy of the poisoned page from our demo. A person sees a pair of headphones. A model that
+      <SectionHead index="03" eyebrow="The attack" title="A product page that gives your agent orders">
+        This is a simplified copy of the poisoned page from our demo. A person sees a pair of headphones. A model that
           extracts the page&apos;s text also reads a paragraph written in the page&apos;s own background colour, and has no
           reliable way to tell it is not part of the task you gave it.
-        </p>
-      </Reveal>
+      </SectionHead>
 
       <Reveal className="mt-10">
         <div className="mb-3 flex items-center justify-between gap-4">
@@ -33,11 +31,11 @@ export function Attack() {
             role="switch"
             aria-checked={show}
             onClick={() => setShow((s) => !s)}
-            className="inline-flex items-center gap-2.5 rounded-md border border-line bg-hull px-3 py-1.5 text-sm font-medium text-ink transition-colors hover:border-mist/50"
+            className="inline-flex items-center gap-2.5 rounded-md border border-line bg-hull px-3 py-1.5 text-sm font-medium text-ink transition-colors hover:border-signal/40"
           >
             Show what the agent reads
-            <span aria-hidden className={`relative h-5 w-9 rounded-full transition-colors ${show ? "bg-ink" : "bg-line"}`}>
-              <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white transition-all ${show ? "left-[18px]" : "left-0.5"}`} />
+            <span aria-hidden className={`relative h-5 w-9 rounded-full transition-colors ${show ? "bg-signal" : "bg-line"}`}>
+              <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-ink transition-all ${show ? "left-[18px]" : "left-0.5"}`} />
             </span>
           </button>
         </div>
@@ -70,13 +68,13 @@ export function Attack() {
               Hidden text: white on white, 1px high. Never shown to a person.
             </p>
 
-            <span className="mt-4 inline-block rounded-md bg-ink px-4 py-2 text-sm font-medium text-white">Add to cart</span>
+            <span className="mt-4 inline-block rounded-md bg-ink px-4 py-2 text-sm font-medium text-void">Add to cart</span>
             <p className="mt-6 border-t border-line pt-3 text-xs text-mist">Free returns within 30 days.</p>
           </div>
         </div>
 
         <details className="mt-4 text-sm text-mist">
-          <summary className="cursor-pointer text-ink">The text extracted for the model</summary>
+          <summary className="cursor-pointer font-mono text-xs uppercase tracking-[0.14em] text-ink hover:text-signal">The text extracted for the model</summary>
           <pre className="mt-2 whitespace-pre-wrap rounded-lg bg-panel p-4 font-mono text-[13px] leading-relaxed text-ink">
             {AGENT_LINES.join("\n")}
             {"\n"}

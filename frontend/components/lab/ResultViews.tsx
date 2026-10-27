@@ -1,6 +1,6 @@
 "use client";
 // The three result tabs of the firewall lab: X-ray (raw content with flagged spans), What the agent sees
-// (content_for_model with Airlock markers styled) and Human view (visible_text).
+// (content_for_model with Veil markers styled) and Human view (visible_text).
 import { useRef } from "react";
 import { revealInvisible, segmentFindings, segmentMarkers } from "@/lib/highlight";
 import type { Finding, FirewallResult } from "@/lib/types";

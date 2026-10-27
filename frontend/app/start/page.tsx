@@ -2,12 +2,12 @@ import type { Metadata } from "next";
 import { CodeBlock } from "@/components/ui/CodeBlock";
 
 export const metadata: Metadata = {
-  title: "Get started — Airlock",
-  description: "Run the Airlock console locally, or put the firewall in front of your own agent over a local HTTP API or MCP.",
+  title: "Get started — Veil",
+  description: "Run the Veil console locally, or put the firewall in front of your own agent over a local HTTP API or MCP.",
 };
 
 const SECTIONS = [
-  { id: "what", label: "What Airlock is" },
+  { id: "what", label: "What Veil is" },
   { id: "console", label: "Run the console" },
   { id: "api", label: "Use the HTTP API" },
   { id: "mcp", label: "Use it over MCP" },
@@ -26,8 +26,8 @@ npm run dev`;
 const MCP_CONFIG = `{
   "mcpServers": {
     "veil": {
-      "command": "/abs/path/to/Agents-Firewall/.venv/bin/python",
-      "args": ["/abs/path/to/Agents-Firewall/backend/mcp_server.py"],
+      "command": "/abs/path/to/Veil/.venv/bin/python",
+      "args": ["/abs/path/to/Veil/backend/mcp_server.py"],
       "env": { "GEMMA_ENABLED": "false" }
     }
   }
@@ -54,12 +54,12 @@ const RESPONSE = `{
 
 const PY = `import requests
 
-AIRLOCK = "http://localhost:8000"
+VEIL = "http://localhost:8000"
 
 def safe_tool_result(tool_name: str, raw: str, content_type: str = "text") -> str:
     """Scan a tool result before it goes into the model's context."""
     r = requests.post(
-        f"{AIRLOCK}/firewall/scan",
+        f"{VEIL}/firewall/scan",
         json={"content": raw, "content_type": content_type, "tool": tool_name},
         timeout=30,
     )
@@ -90,7 +90,7 @@ export default function StartPage() {
             <ul className="space-y-2 border-l border-line text-sm">
               {SECTIONS.map((s) => (
                 <li key={s.id}>
-                  <a href={`#${s.id}`} className="-ml-px block border-l border-transparent pl-4 text-mist hover:border-ink hover:text-ink">
+                  <a href={`#${s.id}`} className="-ml-px block border-l border-transparent pl-4 text-mist hover:border-signal hover:text-ink">
                     {s.label}
                   </a>
                 </li>
@@ -102,13 +102,13 @@ export default function StartPage() {
         <article className="min-w-0 max-w-[720px]">
           <h1>Get started</h1>
           <p className="mt-5 text-lg text-mist">
-            Three ways in: run the console to see Airlock work, or put the firewall in front of an agent you already have, over HTTP or MCP.
+            Three ways in: run the console to see Veil work, or put the firewall in front of an agent you already have, over HTTP or MCP.
           </p>
 
           <section className="mt-14 space-y-4">
-            <H2 id="what">What Airlock is</H2>
+            <H2 id="what">What Veil is</H2>
             <p className="text-mist">
-              Airlock is a local service plus this web console. The service is a FastAPI app that runs on your machine, with
+              Veil is a local service plus this web console. The service is a FastAPI app that runs on your machine, with
               Gemma 4 served by Foundry Local for the checks that rules can&apos;t make. The console is a Next.js app that talks to it.
             </p>
             <p className="text-mist">
@@ -177,7 +177,7 @@ export default function StartPage() {
           <section className="mt-14 space-y-4">
             <H2 id="mcp">Option 3: use it from Claude Desktop or Cursor (MCP)</H2>
             <p className="text-mist">
-              Airlock also runs as a local MCP server over stdio. The client starts it as a child process on your machine; nothing goes
+              Veil also runs as a local MCP server over stdio. The client starts it as a child process on your machine; nothing goes
               to a hosted service. Add this to <Code>claude_desktop_config.json</Code> (or <Code>.cursor/mcp.json</Code>) with your own
               absolute paths, after installing the backend as in Option 1:
             </p>
@@ -201,7 +201,7 @@ export default function StartPage() {
               <li className="py-4">
                 <p className="font-medium text-ink">Browser extension</p>
                 <p className="mt-1 text-sm text-mist">
-                  Airlock v1 shipped an extension for ChatGPT, Claude and Gemini in the earlier repository. Bringing the outer door to the
+                  Veil v1 shipped an extension for ChatGPT, Claude and Gemini in the earlier repository. Bringing the outer door to the
                   browser is planned, not done.
                 </p>
               </li>

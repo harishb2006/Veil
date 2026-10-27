@@ -133,7 +133,7 @@ export function MissionControl() {
           <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
             <div>
               <h1 className="text-2xl font-semibold tracking-tight text-ink">Live demo</h1>
-              <p className="mt-1 text-[15px] text-mist">Same task, same agent, with and without Airlock.</p>
+              <p className="mt-1 text-[15px] text-mist">Same task, same agent, with and without Veil.</p>
             </div>
             {usingMock && (
               <p

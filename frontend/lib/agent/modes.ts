@@ -20,7 +20,7 @@ export const MODE_META: Record<Mode, ModeMeta> = {
   },
   full: {
     id: "full",
-    label: "Full Airlock",
+    label: "Full Veil",
     protection: "Outer door + gate + inner door",
     presenterIdle: "The attack never lands.",
     presenterStep: 2,
