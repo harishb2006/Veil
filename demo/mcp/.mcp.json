@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "veil": {
+      "command": "../../.venv/bin/python",
+      "args": ["../../backend/mcp_server.py"],
+      "env": { "GEMMA_ENABLED": "false" }
+    }
+  }
+}

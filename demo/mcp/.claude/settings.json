@@ -1,0 +1,14 @@
+{
+  "enabledMcpjsonServers": ["veil"],
+  "permissions": {
+    "allow": [
+      "mcp__veil__veil_fetch",
+      "mcp__veil__veil_scan",
+      "mcp__veil__veil_protect",
+      "mcp__veil__veil_check_action",
+      "mcp__veil__veil_rehydrate",
+      "mcp__veil__veil_reset"
+    ],
+    "deny": ["WebFetch", "WebSearch", "Bash(curl:*)", "Bash(wget:*)", "Read(./.env)"]
+  }
+}
