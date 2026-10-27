@@ -1,0 +1,16 @@
+# Airlock gate policy. Every tool call an agent tries to make is checked against this file.
+
+# Tools whose results are untrusted content (reading one "taints" the run).
+untrusted_sources: [fetch_page, read_inbox, read_email, read_file]
+
+# Tools that change the outside world; only these are gated.
+risky_tools: [send_email, run_shell]
+
+# Addresses the user trusts as recipients, in addition to anything they typed in their own task.
+contacts: [priya@acme.test, team@acme.test]
+
+# Hosts a tainted run may mention in risky-tool arguments (the sandbox's own pages). URLs with a
+# query string are always refused when tainted, and so is every other host.
+allowed_hosts: [shop.test, docs.devtool.test, news.test]
+
+rules: [secrets_never_leave, recipient_provenance, shell_when_tainted, exfil_urls]

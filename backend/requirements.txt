@@ -1,0 +1,12 @@
+pytest
+fastapi
+uvicorn[standard]
+pydantic
+httpx
+python-dotenv
+python-multipart
+pillow
+beautifulsoup4
+pyyaml
+foundry-local-sdk
+mcp>=1.2,<2
