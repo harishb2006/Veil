@@ -1,7 +1,7 @@
-# Run Airlock locally
+# Run VEIL locally
 
 Step-by-step setup for a team laptop, from clone to the live demo, plus a demo-day checklist and fixes for
-common problems. Airlock is two local processes: a **FastAPI backend** on port 8000 and a **Next.js web
+common problems. VEIL is two local processes: a **FastAPI backend** on port 8000 and a **Next.js web
 console** on port 3000. Nothing is hosted; no real email is sent and no shell command is executed.
 
 ## 1. Prerequisites
@@ -14,14 +14,14 @@ console** on port 3000. Nothing is hosted; no real email is sent and no shell co
 | Gemma 4 (optional) | Microsoft Foundry Local, model alias `gemma-4-e2b-it` | see §4 |
 | Cloud model key (optional) | any OpenAI-compatible API with tool calling | only for a real-model agent |
 
-Without Gemma, Airlock runs **rules-only**. Without a cloud key, the live demo uses the built-in **scripted
+Without Gemma, VEIL runs **rules-only**. Without a cloud key, the live demo uses the built-in **scripted
 demo agent**. Both are fine for the demo.
 
 ## 2. Clone
 
 ```bash
-git clone https://github.com/rahulrr-coder/Agents-Firewall.git
-cd Agents-Firewall
+git clone https://github.com/harishb2006/veil.git
+cd veil
 ```
 
 ## 3. Backend (terminal 1)
@@ -57,7 +57,7 @@ Check it: open <http://localhost:8000/health>. You should see `"ok": true`, a `f
 
 ## 4. Gemma 4 (optional, for the Gemma track)
 
-Airlock loads Gemma through the Foundry Local Python SDK (`foundry-local-sdk`, already in
+VEIL loads Gemma through the Foundry Local Python SDK (`foundry-local-sdk`, already in
 `backend/requirements.txt`). On first start with `GEMMA_ENABLED=true` it registers the WebGPU execution
 provider and downloads `gemma-4-e2b-it` if it isn't cached, so **do the first run on good Wi-Fi the day
 before**. If the SDK can't find a runtime on your machine, install Microsoft Foundry Local from
@@ -90,9 +90,9 @@ The frontend calls `http://localhost:8000` by default. To change it, create `fro
 ## 6. Try it
 
 1. Open **Live demo**. *The poisoned product page* is preselected. Press **R** (Run comparison).
-2. Watch the three columns: Raw emails the real key to `attacker@evil.test`; Airlock v1 leaks only
-   `[API_KEY_1]`; Full Airlock removes the hidden order and Priya still gets her summary.
-3. Pick *The invoice phish* and press **R**: in Full Airlock the gate blocks the planted recipient and says why.
+2. Watch the two columns: Raw emails the real key to `attacker@evil.test`; Full VEIL removes the
+   hidden order and Priya still gets her summary.
+3. Pick *The invoice phish* and press **R**: in Full VEIL the gate blocks the planted recipient and says why.
 4. Open **Firewall lab**, pick a page, and switch between X-ray and "What the agent sees".
 
 Keyboard: **R** run, **1–4** pick scenario, **P** presenter notes, **Esc** close drawers.
@@ -106,7 +106,7 @@ GEMMA_ENABLED=false python -m pytest -q backend/tests
 # with the backend running (terminal 1):
 python eval/run_injection_eval.py                    # detection only
 python eval/run_injection_eval.py --agent \
-  --publish frontend/public/eval-results.json        # + end-to-end raw / v1 / full, updates the Overview page
+  --publish frontend/public/eval-results.json        # + end-to-end raw / full, updates the Overview page
 ```
 
 Run the eval once with `GEMMA_ENABLED=false` and once with Gemma loaded: the published file keeps both

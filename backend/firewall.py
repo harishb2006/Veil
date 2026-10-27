@@ -14,15 +14,15 @@ import time
 
 from backend import gemma, inject_rules
 
-logger = logging.getLogger("airlock.firewall")
+logger = logging.getLogger("veil.firewall")
 
 QUARANTINE_RATIO = 0.5
-REMOVED_HIDDEN = "[REMOVED BY AIRLOCK: hidden instruction]"
-REMOVED_VISIBLE = "[REMOVED BY AIRLOCK: instruction aimed at AI]"
+REMOVED_HIDDEN = "[REMOVED BY VEIL: hidden instruction]"
+REMOVED_VISIBLE = "[REMOVED BY VEIL: instruction aimed at AI]"
 
 _SEVERITY_RANK = {"low": 0, "medium": 1, "high": 2}
 # Hidden kinds whose text never reaches visible_text, so there is nothing to cut out of it.
-_NOT_IN_VISIBLE = {"HIDDEN_CSS", "COMMENT", "ATTR", "UNICODE_TAG"}
+_NOT_IN_VISIBLE = {"HIDDEN_CSS", "COMMENT", "ATTR", "UNICODE_TAG", "VARIATION_SELECTOR"}
 _MAX_REASON_WORDS = 8
 
 
@@ -57,16 +57,36 @@ def _find_span(text: str, needle: str) -> tuple[int, int] | None:
 # --------------------------------------------------------------------------- tier 2 (Gemma)
 
 
-def _gemma_units(segments: list[dict], visible: str, budget: int, full_scan_chars: int) -> list[tuple[str, str | None]]:
-    """Texts to send to Gemma, hidden/decoded segments first. Each unit is one chunk: (text, segment kind)."""
+# Words and shapes that make a sentence worth a second opinion from Gemma: it is addressed to an AI, gives an
+# order about data or commands, or points at an address or URL. Every other sentence is never sent to the model.
+_CUES = re.compile(
+    r"(?i)(?:\b(?:ai|a\.i\.|assistant|agent|model|llm|chatgpt|claude|gemini|ignore|disregard|override|reveal|"
+    r"forward|send|email|mail|upload|post|exfiltrate|execute|run|curl|wget|bash|shell|password|api[ _-]?key|"
+    r"secret|token|do not (?:tell|mention|reveal)|don't (?:tell|mention|reveal)|tell no one|top priority|"
+    r"above all|immediately|urgent(?:ly)?|please|wire|transfer|payment|funds|instructions?)\b|\.env\b|@|https?://)"
+)
+_MAX_CANDIDATE_LINES = 12
+
+
+def _suspicious_sentences(visible: str) -> list[str]:
+    """The sentences of the visible text the rules find worth asking Gemma about, in order (exact substrings)."""
+
+    sentences = gemma.numbered_lines(visible)
+    return [s for s in sentences if inject_rules.phrase_score(s) > 0 or _CUES.search(s)][:_MAX_CANDIDATE_LINES]
+
+
+def _gemma_units(segments: list[dict], visible: str, budget: int) -> list[tuple[str, str | None]]:
+    """Texts to send to Gemma, hidden/decoded segments first. Each unit is one chunk: (text, segment kind).
+
+    Visible text is never sent whole, only the sentences the rules flagged as suspicious. Gemma then judges a
+    few lines instead of a whole page: faster, and a small model is far less likely to flag harmless text."""
 
     units: list[tuple[str, str | None]] = []
     for segment in segments:
         units.extend((chunk, segment["kind"]) for chunk in gemma._chunk(segment["text"]) if chunk.strip())
-    visible_chunks = [chunk for chunk in gemma._chunk(visible) if chunk.strip()]
-    if len(visible) >= full_scan_chars:
-        visible_chunks = [chunk for chunk in visible_chunks if inject_rules.phrase_score(chunk) > 0]
-    units.extend((chunk, None) for chunk in visible_chunks)
+    suspicious = _suspicious_sentences(visible)
+    if suspicious:
+        units.extend((chunk, None) for chunk in gemma._chunk("\n".join(suspicious)) if chunk.strip())
     return units[:budget]
 
 
@@ -76,7 +96,6 @@ def _gemma_findings(segments: list[dict], visible: str) -> tuple[list[dict], boo
     units = _gemma_units(
         segments, visible,
         budget=_env_int("INJECTION_MAX_CHUNKS", 3),
-        full_scan_chars=_env_int("INJECTION_FULL_SCAN_CHARS", 3000),
     )
     findings: list[dict] = []
     answered = False
@@ -244,7 +263,7 @@ def scan_result(tool: str, content: str, content_type: str = "text") -> dict:
 
     if _should_quarantine(visible, findings):
         flagged = sum(1 for f in findings if f["severity"] != "low") or len(findings)
-        model_text = f"[AIRLOCK QUARANTINED this result from {tool}: {flagged} instructions found]"
+        model_text = f"[VEIL QUARANTINED this result from {tool}: {flagged} instructions found]"
         verdict = "QUARANTINED"
     else:
         spans = _removal_spans(visible, findings)

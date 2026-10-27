@@ -271,3 +271,22 @@ body {
 .ticker:hover .ticker-track {
   animation-play-state: paused;
 }
+
+/* Firewall lab: a light sweeping across the page while the local model reads it. */
+@keyframes scan-sweep {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(350%);
+  }
+}
+.scan-sweep {
+  animation: scan-sweep 1.8s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scan-sweep {
+    animation: none;
+  }
+}

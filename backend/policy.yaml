@@ -1,4 +1,4 @@
-# Airlock gate policy. Every tool call an agent tries to make is checked against this file.
+# VEIL gate policy. Every tool call an agent tries to make is checked against this file.
 
 # Tools whose results are untrusted content (reading one "taints" the run).
 untrusted_sources: [fetch_page, read_inbox, read_email, read_file]
@@ -13,4 +13,34 @@ contacts: [priya@acme.test, team@acme.test]
 # query string are always refused when tainted, and so is every other host.
 allowed_hosts: [shop.test, docs.devtool.test, news.test]
 
-rules: [secrets_never_leave, recipient_provenance, shell_when_tainted, exfil_urls]
+# Anonymous drop sites: anything sent to these (or their subdomains) is public or attacker-readable.
+# The egress rule blocks them whether or not the run has read untrusted content.
+drop_sites:
+  - pastebin.com
+  - paste.ee
+  - hastebin.com
+  - transfer.sh
+  - file.io
+  - webhook.site
+  - requestbin.com
+  - requestbin.net
+  - pipedream.net
+  - hookbin.com
+  - ngrok.io
+  - ngrok-free.app
+  - ngrok.app
+  - trycloudflare.com
+  - oast.fun
+  - oast.pro
+  - oast.live
+  - oast.site
+  - oast.online
+  - oast.me
+  - interact.sh
+  - burpcollaborator.net
+  - requestcatcher.com
+  - beeceptor.com
+
+# egress: SSRF / cloud-metadata targets, drop sites above, and DNS-tunnelling hosts (a 24+ character
+# high-entropy subdomain label). Hosts in allowed_hosts are never flagged by it.
+rules: [secrets_never_leave, recipient_provenance, egress, shell_when_tainted, exfil_urls]

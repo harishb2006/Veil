@@ -9,7 +9,7 @@ from dataclasses import dataclass, field
 
 from backend import gemma, risk, rules
 
-logger = logging.getLogger("airlock.pipeline")
+logger = logging.getLogger("veil.pipeline")
 
 REDACTED_TYPES = {"API_KEY", "PASSWORD", "JWT", "CARD", "GOV_ID"}
 WORD_BOUNDARY_TYPES = {"PERSON", "ORG", "PROJECT"}

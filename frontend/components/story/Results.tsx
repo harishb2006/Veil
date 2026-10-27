@@ -5,9 +5,8 @@ import type { DetectionStats, EvalResults, ModeStats } from "@/lib/types";
 import { frac, pct, useEvalResults } from "@/lib/useEvalResults";
 import { SectionHead } from "./SectionHead";
 
-const MODES: { key: "raw" | "v1" | "full"; label: string }[] = [
+const MODES: { key: "raw" | "full"; label: string }[] = [
   { key: "raw", label: "Raw (no protection)" },
-  { key: "v1", label: "Veil v1 (inner door)" },
   { key: "full", label: "Full Veil" },
 ];
 

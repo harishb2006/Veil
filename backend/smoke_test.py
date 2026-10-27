@@ -1,4 +1,4 @@
-"""End-to-end smoke test against a running Airlock backend.
+"""End-to-end smoke test against a running VEIL backend.
 
 Usage (from repo root, with the backend already running):
     python -m backend.smoke_test                       # http://localhost:8000

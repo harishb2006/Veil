@@ -204,11 +204,11 @@ def build() -> list[dict]:
 
 def main() -> None:
     existing = [json.loads(line) for line in DATASET.read_text(encoding="utf-8").splitlines() if line.strip()] if DATASET.exists() else []
-    merged = [r for r in existing if r.get("origin") == "hand"] + build()
+    merged = [r for r in existing if r.get("origin") in ("hand", "published")] + build()
     merged.sort(key=lambda r: (r["label"] != "attack", r["id"]))
     DATASET.write_text("".join(json.dumps(r, ensure_ascii=False) + "\n" for r in merged), encoding="utf-8")
     hand = sum(r["origin"] == "hand" for r in merged)
-    print(f"wrote {len(merged)} items to {DATASET.name} ({hand} hand, {len(merged) - hand} template)")
+    print(f"wrote {len(merged)} items to {DATASET.name} ({hand} hand, {len(merged) - hand} template/published)")
 
 
 if __name__ == "__main__":

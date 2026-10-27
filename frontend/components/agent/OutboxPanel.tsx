@@ -71,7 +71,7 @@ function OutboxRow({ e }: { e: Entry }) {
   );
 }
 
-/** Everything the agents sent (emails and shell commands) across all three columns, newest first. */
+/** Everything the agents sent (emails and shell commands) across both columns, newest first. */
 export function OutboxPanel({ runs }: { runs: Runs }) {
   const entries = useMemo(() => {
     const out: Entry[] = [];

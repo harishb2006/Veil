@@ -30,12 +30,11 @@ export function MissionControl() {
   const [drawer, setDrawer] = useState<Mode | null>(null);
 
   const raw = useRun(client, ids.raw ?? null);
-  const v1 = useRun(client, ids.v1 ?? null);
   const full = useRun(client, ids.full ?? null);
-  const states = { raw, v1, full };
+  const states = { raw, full };
   const runs = useMemo<Record<Mode, Run | null>>(
-    () => ({ raw: raw.run, v1: v1.run, full: full.run }),
-    [raw.run, v1.run, full.run],
+    () => ({ raw: raw.run, full: full.run }),
+    [raw.run, full.run],
   );
 
   const scenarios = samples?.scenarios ?? null;
@@ -66,7 +65,7 @@ export function MissionControl() {
     setDrawer(null);
     try {
       const run_ids = await client.compare(task.trim());
-      setIds({ raw: run_ids.raw, v1: run_ids.v1, full: run_ids.full });
+      setIds({ raw: run_ids.raw, full: run_ids.full });
     } catch (err) {
       setError(err instanceof Error ? `Could not start the runs: ${err.message}` : "Could not start the runs.");
     } finally {
@@ -134,7 +133,7 @@ export function MissionControl() {
           <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
             <div>
               <h1 className="text-2xl font-semibold tracking-tight text-ink">Live demo</h1>
-              <p className="mt-1 text-[15px] text-mist">Same task, same agent, three levels of protection.</p>
+              <p className="mt-1 text-[15px] text-mist">Same task, same agent, with and without Veil.</p>
             </div>
             {usingMock && (
               <p
@@ -170,7 +169,7 @@ export function MissionControl() {
           />
         </header>
 
-        <div className="grid gap-4 lg:grid-cols-3">
+        <div className="grid gap-4 lg:grid-cols-2">
           {MODES.map((m) => (
             <Lane
               key={m}

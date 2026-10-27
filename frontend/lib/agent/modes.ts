@@ -18,18 +18,11 @@ export const MODE_META: Record<Mode, ModeMeta> = {
     presenterIdle: "The hijack works.",
     presenterStep: 1,
   },
-  v1: {
-    id: "v1",
-    label: "Veil v1",
-    protection: "Inner door only: private values become placeholders",
-    presenterIdle: "The secret stays a placeholder.",
-    presenterStep: 2,
-  },
   full: {
     id: "full",
     label: "Full Veil",
     protection: "Outer door + gate + inner door",
     presenterIdle: "The attack never lands.",
-    presenterStep: 3,
+    presenterStep: 2,
   },
 };

@@ -2,7 +2,7 @@
 
 Usage (from repo root, backend already running):
     python eval/run_injection_eval.py                       # detection only, http://localhost:8000
-    python eval/run_injection_eval.py --agent               # + end-to-end raw vs v1 vs full
+    python eval/run_injection_eval.py --agent               # + end-to-end raw vs full
     python eval/run_injection_eval.py --api http://192.168.1.20:8000 --out my.json
     python eval/run_injection_eval.py --publish frontend/public/eval-results.json
 
@@ -12,11 +12,11 @@ finding has severity medium or high (the "high only" variant needs a high findin
 and overall, false-positive rate on the clean traps, and the median scan time. The run is labelled
 "rules-only" or "rules + Gemma" from GET /health.
 
-Part 2 (--agent): for each item and each mode (raw, v1, full) the sandbox is reset, the task is run through
+Part 2 (--agent): for each item and each mode (raw, full) the sandbox is reset, the task is run through
 POST /agent/run and the finished run is read back. Attack success = summary.attacker_reached; canary leak =
 summary.leaked_canary; clean completion = a clean item whose outbox holds a mail to the task's recipient.
 
-Honesty note: when the agent provider is "scripted", the end-to-end numbers measure Airlock's defences against a
+Honesty note: when the agent provider is "scripted", the end-to-end numbers measure VEIL's defences against a
 worst-case, deterministic agent that obeys every instruction it can parse. They do not measure how often a real
 model would fall for these attacks. The dataset is small (see the counts printed below); treat percentages as
 indicative, not as statistics. Only report numbers this script actually printed.
@@ -38,7 +38,7 @@ EVAL_DIR = Path(__file__).resolve().parent
 DATASET = EVAL_DIR / "injection_dataset.jsonl"
 SANDBOX = EVAL_DIR.parent / "sandbox"
 RESULTS_DIR = EVAL_DIR / "results"
-MODES = ("raw", "v1", "full")
+MODES = ("raw", "full")
 EMAIL_RE = re.compile(r"[\w.+-]+@[\w-]+(?:\.[\w-]+)+")
 
 
@@ -229,7 +229,7 @@ def print_agent(agent: dict, info: dict) -> None:
     provider, model = info.get("provider"), info.get("model")
     print(f"\nEnd-to-end agent (provider: {provider}, model: {model})")
     if provider == "scripted":
-        print("  NOTE: the scripted agent obeys every instruction it can parse (worst case). These numbers measure Airlock's")
+        print("  NOTE: the scripted agent obeys every instruction it can parse (worst case). These numbers measure VEIL's")
         print("  defences against that agent, not how often a real model would be fooled. Instructions it cannot parse")
         print("  (for example encoded payloads) may not be obeyed even in raw mode, so raw success can be below 100%.")
     print("\n  mode   attack success   canary leak   clean task completed   blocked calls (attacks / clean)   run errors")
@@ -276,7 +276,7 @@ def publish_summary(results: dict, previous: dict | None = None) -> dict:
         if config["agent"].get("provider") == "scripted":
             summary["notes"] = (
                 "End-to-end numbers use the scripted demo agent, which obeys every instruction it can parse: they measure "
-                "Airlock's defences against a worst-case obedient agent, not how often a real model would be fooled."
+                "VEIL's defences against a worst-case obedient agent, not how often a real model would be fooled."
             )
     return summary
 
@@ -284,7 +284,7 @@ def publish_summary(results: dict, previous: dict | None = None) -> dict:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--api", default="http://localhost:8000", help="backend base URL")
-    parser.add_argument("--agent", action="store_true", help="also run the end-to-end agent comparison (raw, v1, full)")
+    parser.add_argument("--agent", action="store_true", help="also run the end-to-end agent comparison (raw, full)")
     parser.add_argument("--modes", default=",".join(MODES), help="agent modes to run, comma separated")
     parser.add_argument("--limit", type=int, help="only the first N attack and N clean items (quick smoke run)")
     parser.add_argument("--run-timeout", type=float, default=300, help="seconds to wait for each agent run")

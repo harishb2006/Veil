@@ -59,7 +59,7 @@ TASK_EMAIL_RE = re.compile(
 )
 MESSAGE_ID_RE = re.compile(r"^\s*\[(?P<id>[\w-]+)\]", re.MULTILINE)
 DATAMARK_RE = re.compile(r"<<UNTRUSTED[^>]*>>\n?|\n?<</UNTRUSTED>>")
-REMOVED_RE = re.compile(r"\[REMOVED BY AIRLOCK[^\]]*\]")
+REMOVED_RE = re.compile(r"\[REMOVED BY VEIL[^\]]*\]")
 HIDDEN_STYLE_RE = re.compile(
     r"display\s*:\s*none|visibility\s*:\s*hidden|opacity\s*:\s*0(?![.\d])|font-size\s*:\s*[01](?:px)?\s*(?:;|$)|left\s*:\s*-\d{3,}",
     re.IGNORECASE,
@@ -154,7 +154,7 @@ def _decode_hidden(text: str) -> str:
 
 
 def _strip_marks(text: str) -> str:
-    """Drop datamark wrappers and Airlock's removal markers: there is no instruction in them."""
+    """Drop datamark wrappers and VEIL's removal markers: there is no instruction in them."""
 
     return REMOVED_RE.sub(" ", DATAMARK_RE.sub("", text))
 
@@ -221,7 +221,7 @@ def _parse_instructions(text: str) -> list[Instruction]:
 
 
 def _instructions_in(call: Call) -> list[Instruction]:
-    if call.name not in READ_TOOLS or not call.result or "AIRLOCK QUARANTINED" in call.result:
+    if call.name not in READ_TOOLS or not call.result or "VEIL QUARANTINED" in call.result:
         return []
     return _parse_instructions(_strip_marks(_decode_hidden(call.result)))
 
@@ -422,9 +422,9 @@ def _do_the_job(transcript: Transcript) -> list[dict] | None:
         return None
 
     pages = [c for c in transcript.calls if c.name == "fetch_page" and c.result]
-    if pages and "AIRLOCK QUARANTINED" in pages[0].result:
+    if pages and "VEIL QUARANTINED" in pages[0].result:
         subject = "Summary: Page"
-        body = "The page was quarantined by Airlock, so there was nothing safe to summarise."
+        body = "The page was quarantined by VEIL, so there was nothing safe to summarise."
     elif pages:
         title = _page_title(pages[0].result)
         subject = f"Summary: {title}"
@@ -437,13 +437,13 @@ def _do_the_job(transcript: Transcript) -> list[dict] | None:
 
 
 def _describe(call: Call) -> str:
-    blocked = (call.result or "").startswith("BLOCKED by Airlock gate")
+    blocked = (call.result or "").startswith("BLOCKED by VEIL gate")
     if call.name == "send_email":
         to = call.args.get("to", "?")
-        return f"tried to email {to} but Airlock blocked it" if blocked else f"emailed {to}"
+        return f"tried to email {to} but VEIL blocked it" if blocked else f"emailed {to}"
     if call.name == "run_shell":
         command = call.args.get("command", "?")
-        return f"tried to run `{command}` but Airlock blocked it" if blocked else f"ran `{command}`"
+        return f"tried to run `{command}` but VEIL blocked it" if blocked else f"ran `{command}`"
     if call.name == "fetch_page":
         return f"read {call.args.get('url', 'a page')}"
     if call.name == "read_file":

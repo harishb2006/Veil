@@ -1,4 +1,4 @@
-// Shared API shapes. v1 shapes mirror docs/AIRLOCK_V1_CONTEXT.md; v2 shapes mirror docs/BUILD_PLAN.md §1-§5.
+// Shared API shapes. v1 shapes mirror docs/V1_CONTEXT.md; v2 shapes mirror docs/BUILD_PLAN.md §1-§5.
 
 // ---------- v1: inner door ----------
 
@@ -68,6 +68,7 @@ export type FindingKind =
   | "ATTR"
   | "ZERO_WIDTH"
   | "UNICODE_TAG"
+  | "VARIATION_SELECTOR"
   | "BIDI"
   | "BASE64"
   | "INSTRUCTION"
@@ -139,7 +140,7 @@ export interface EvalResults {
   gemma?: { available?: boolean; model?: string };
   agent?: { provider?: string; model?: string };
   detection?: { rules_only?: DetectionStats; rules_plus_gemma?: DetectionStats };
-  end_to_end?: { raw?: ModeStats; v1?: ModeStats; full?: ModeStats };
+  end_to_end?: { raw?: ModeStats; full?: ModeStats };
   latency_ms?: { median_per_tool_result?: number };
   notes?: string;
 }

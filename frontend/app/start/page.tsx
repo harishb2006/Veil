@@ -164,8 +164,7 @@ export default function StartPage() {
                 <Code>POST /rehydrate</Code> with <Code>{`{scan_id, text}`}</Code> restores placeholders in a reply locally. Secrets are never restored.
               </li>
               <li>
-                <Code>POST /agent/run</Code> with <Code>{`{task, mode}`}</Code> starts the sandboxed demo agent (<Code>raw</Code>, <Code>v1</Code> or{" "}
-                <Code>full</Code>) and returns a <Code>run_id</Code>; poll <Code>GET /agent/runs/&#123;run_id&#125;</Code>. Email is written to a fake
+                <Code>POST /agent/run</Code> with <Code>{`{task, mode}`}</Code> starts the sandboxed demo agent (<Code>raw</Code> or <Code>full</Code>) and returns a <Code>run_id</Code>; poll <Code>GET /agent/runs/&#123;run_id&#125;</Code>. Email is written to a fake
                 outbox and shell commands are never executed.
               </li>
             </ul>
@@ -185,11 +184,11 @@ export default function StartPage() {
             <CodeBlock label="json" copy={MCP_CONFIG}>{MCP_CONFIG}</CodeBlock>
             <p className="text-mist">It exposes six tools that use the same engine as this console:</p>
             <ul className="list-disc space-y-2 pl-5 text-mist marker:text-line">
-              <li><Code>airlock_fetch</Code> fetches a page and returns it through the outer door, with a verdict and findings.</li>
-              <li><Code>airlock_scan</Code> does the same for content the client already has: an email, a file, another tool&apos;s output.</li>
-              <li><Code>airlock_protect</Code> swaps private values for placeholders that remember where they came from.</li>
-              <li><Code>airlock_check_action</Code> asks the gate before sending email or running a command.</li>
-              <li><Code>airlock_rehydrate</Code> restores your own values in a reply; <Code>airlock_reset</Code> starts a new run.</li>
+              <li><Code>veil_fetch</Code> fetches a page and returns it through the outer door, with a verdict and findings.</li>
+              <li><Code>veil_scan</Code> does the same for content the client already has: an email, a file, another tool&apos;s output.</li>
+              <li><Code>veil_protect</Code> swaps private values for placeholders that remember where they came from.</li>
+              <li><Code>veil_check_action</Code> asks the gate before sending email or running a command.</li>
+              <li><Code>veil_rehydrate</Code> restores your own values in a reply; <Code>veil_reset</Code> starts a new run.</li>
             </ul>
             <p className="text-sm text-mist">
               Setup for Windows and Cursor, and a recommended client instruction, are in <Code>docs/MCP.md</Code>.

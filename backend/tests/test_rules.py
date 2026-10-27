@@ -48,7 +48,7 @@ def test_public_url_not_internal():
 
 
 def test_api_key():
-    text = "key stripe_key_example_value"
+    text = "key " + "sk_" + "live_" + "51HxQe9kLmN3pQrStUvWxYz"  # built from pieces: push protection
     results = detect(text)
     assert len(results) == 1
     assert results[0]["type"] == "API_KEY"

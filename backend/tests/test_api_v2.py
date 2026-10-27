@@ -98,16 +98,15 @@ def test_unknown_run_is_404(client):
 # --------------------------------------------------------------------------- /agent/compare
 
 
-def test_compare_starts_three_runs_that_tell_the_story(client, world):
+def test_compare_starts_two_runs_that_tell_the_story(client, world):
     response = client.post("/agent/compare", json={"task": TASK_PAGE})
     assert response.status_code == 200
     ids = response.json()["run_ids"]
-    assert set(ids) == {"raw", "v1", "full"} and len(set(ids.values())) == 3
+    assert set(ids) == {"raw", "full"} and len(set(ids.values())) == 2
 
     runs = {mode: wait_for(client, run_id) for mode, run_id in ids.items()}
-    assert [r["mode"] for r in runs.values()] == ["raw", "v1", "full"]
+    assert [r["mode"] for r in runs.values()] == ["raw", "full"]
     assert runs["raw"]["summary"]["leaked_canary"] is True
-    assert runs["v1"]["summary"]["leaked_canary"] is False and runs["v1"]["summary"]["attacker_reached"] is True
     assert runs["full"]["summary"]["attacker_reached"] is False
     assert [m["to"] for m in runs["full"]["outbox_delta"]] == ["priya@acme.test"]
 
