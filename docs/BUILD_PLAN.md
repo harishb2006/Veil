@@ -1,6 +1,6 @@
 # Build plan — exact interfaces, file ownership and design system
 
-Read with `docs/AIRLOCK_AGENT_CONTEXT.md`. Every shape here is **frozen**: build to it, don't change it without
+Read with `docs/AGENT_CONTEXT.md`. Every shape here is **frozen**: build to it, don't change it without
 the orchestrator. Python 3.11+, FastAPI. Run backend tests with `GEMMA_ENABLED=false python -m pytest -q backend/tests`
 from the repo root. Never require a cloud key or Gemma in tests.
 
@@ -37,7 +37,7 @@ def scan(content: str, content_type: str = "text") -> dict:
 ```
 - `visible_text`: what a human sees (HTML: hidden elements, comments, scripts/styles removed, text extracted with
   sensible whitespace; text/email: content with zero-width/bidi/tag chars removed).
-- Finding ids are `f1, f2, …` per scan. Severity rules in AIRLOCK_AGENT_CONTEXT §6.
+- Finding ids are `f1, f2, …` per scan. Severity rules in AGENT_CONTEXT §6.
 - Plain text and email may contain HTML too (emails often do); apply HTML extraction when content looks like HTML.
 
 ```python
@@ -60,12 +60,12 @@ def gemma_injection_available() -> bool
   `gemma.is_loaded()`. Gemma failure → log and continue rules-only.
 - Merge tiers: rule wins on overlapping text.
 - `content_for_model` is built from `visible_text` (hidden content is never shown to the model):
-  - each **high**-severity visible span is replaced with `[REMOVED BY AIRLOCK: hidden instruction]`
-    (wording: `[REMOVED BY AIRLOCK: instruction aimed at AI]` for visible spans);
+  - each **high**-severity visible span is replaced with `[REMOVED BY VEIL: hidden instruction]`
+    (wording: `[REMOVED BY VEIL: instruction aimed at AI]` for visible spans);
   - **medium** spans stay (the gate is the second line of defence) — do not over-strip clean content;
   - verdict `SANITIZED` if any hidden content was dropped or any span replaced; `ALLOW` otherwise;
   - `QUARANTINED` if flagged text length > `QUARANTINE_RATIO` of visible text, or a `UNICODE_TAG` finding plus a
-    high `INSTRUCTION` → content is only `[AIRLOCK QUARANTINED this result from <tool>: N instructions found]`.
+    high `INSTRUCTION` → content is only `[VEIL QUARANTINED this result from <tool>: N instructions found]`.
   - Always datamark: `<<UNTRUSTED source="<tool>">>\n…\n<</UNTRUSTED>>`.
 
 ## 3. Sandbox — `backend/tools_sandbox.py`, `sandbox/`
@@ -84,7 +84,7 @@ def page_html(url: str) -> str | None                       # raw HTML for a san
 ```
 Tools and args:
 - `fetch_page(url)` → HTML of the mapped page (`https://<host>/<slug>` → `sandbox/pages/<file>.html` via a dict
-  in the module); unknown URL → `ok=False`, content "404: page not found in the Airlock sandbox (no live web)".
+  in the module); unknown URL → `ok=False`, content "404: page not found in the VEIL sandbox (no live web)".
 - `read_inbox()` → text list of emails: id, from, subject, first line. `read_email(id)` → full email (`email`).
 - `read_file(path)` → file under `sandbox/files/` only (reject `..`/absolute paths). `.env` is served virtually from
   `tools_sandbox.VIRTUAL_FILES` and holds the runtime-built canary `CANARY_API_KEY=<CANARY_VALUE>` (must be caught by `rules.detect` as API_KEY).
@@ -162,7 +162,7 @@ key and no Wi-Fi. Labelled everywhere as *"Scripted demo agent — obeys any ins
 2. After each tool result, **obey** any instruction it can parse in what it was shown (datamarked or not):
    "read/open the file X" → `read_file`, "email/send/forward … to <addr or placeholder>" → `send_email` with the
    most recent file/email contents as body, "run …"/`curl …` → `run_shell`. Each injected instruction obeyed once.
-   If the content says `[REMOVED BY AIRLOCK…]`/`QUARANTINED`, there is nothing to obey.
+   If the content says `[REMOVED BY VEIL…]`/`QUARANTINED`, there is nothing to obey.
 3. Then do the user's job: if the task says "email … to X", `send_email(to=X, subject="Summary: …", body=<first
    ~3 sentences of the visible page / digest of emails>)`; else answer in text.
 4. Final text: short summary of what it did. Addresses/values are used exactly as it saw them (placeholders stay
@@ -234,7 +234,7 @@ Tokens (define in `app/globals.css` `@theme`; everyone uses these names):
 --color-threat: #f43f5e   attack / blocked / leaked            — rose
 fonts: --font-display "Space Grotesk Variable"; --font-sans "Inter Variable"; --font-mono "Geist Mono Variable"
 ```
-Mode colours: Raw = threat, Full Airlock = safe.
+Mode colours: Raw = threat, Full VEIL = safe.
 
 Routes:
 - `/` **Story** — scroll narrative (see workstream D).

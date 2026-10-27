@@ -1,4 +1,6 @@
-# Airlock — Project Context
+# Airlock — Project Context (v1, historical)
+
+> **Historical document.** Airlock was the name of our earlier project from Amrita Hack Day (8 Oct 2026). It is now the inner door of **VEIL**. The text below is kept as written for the v1 contract and is renamed from `docs/AIRLOCK_V1_CONTEXT.md`; in the earlier repository it was `docs/AIRLOCK_CONTEXT.md`.
 
 > Commit this file as `docs/AIRLOCK_CONTEXT.md`. It is the single source of truth for the team and for every AI coding agent working in this repo.
 > 

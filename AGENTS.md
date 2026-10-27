@@ -8,7 +8,7 @@ Read this file before making changes to the repository.
 
 ## 1. Project Context
 
-This repository contains this project, built for **Hacktoberfest Hack Day Coimbatore × Sri Shakthi Institute of Engineering and Technology** (27 Oct 2026), in collaboration with Major League Hacking (MLH). Read the files in `docs/` (architecture and build plan) before changing code.
+This repository contains **VEIL**, built for **Hacktoberfest Hack Day Coimbatore × Sri Shakthi Institute of Engineering and Technology** (27 Oct 2026), in collaboration with Major League Hacking (MLH). It builds on our Airlock v1 core engine, built at Amrita Hack Day (8 Oct 2026); see `docs/AGENT_CONTEXT.md` and `docs/BUILD_PLAN.md` before changing code.
 
 The project should be developed as a functional hackathon submission and should clearly communicate:
 
