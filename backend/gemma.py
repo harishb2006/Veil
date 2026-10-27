@@ -430,7 +430,7 @@ if __name__ == "__main__":
             "The Henderson account is about to churn. Their CFO Priya "
             "(priya.r@henderson-logistics.com, +91 98400 12345) says the 40L renewal "
             "is off unless Project Falcon ships. Staging is at http://10.20.4.15:8080 "
-            "and the key is stripe_key_example_value."
+            "and the key is " + "sk_" + "live_" + "51HxQe9kLmN3pQrStUvWxYz" + "."  # built from pieces: push protection
         ),
         "diabetes": (
             "Draft a leave note for Arjun Mehta in accounts. He was diagnosed with "

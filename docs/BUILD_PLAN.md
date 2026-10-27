@@ -86,8 +86,8 @@ Tools and args:
 - `fetch_page(url)` → HTML of the mapped page (`https://<host>/<slug>` → `sandbox/pages/<file>.html` via a dict
   in the module); unknown URL → `ok=False`, content "404: page not found in the Airlock sandbox (no live web)".
 - `read_inbox()` → text list of emails: id, from, subject, first line. `read_email(id)` → full email (`email`).
-- `read_file(path)` → file under `sandbox/files/` only (reject `..`/absolute paths). `.env` holds the canary
-  `CANARY_API_KEY=canary_secret_value_demo_7f3a9Qx2LmZ8vB4nK1` (must be caught by `rules.detect` as API_KEY).
+- `read_file(path)` → file under `sandbox/files/` only (reject `..`/absolute paths). `.env` is served virtually from
+  `tools_sandbox.VIRTUAL_FILES` and holds the runtime-built canary `CANARY_API_KEY=<CANARY_VALUE>` (must be caught by `rules.detect` as API_KEY).
 - `send_email(to, subject, body)` → appended to in-memory outbox (thread-safe), returns `"Email sent to <to>."`.
 - `run_shell(command)` → **never executes**; logged; returns `"(simulated) command logged, not executed: <command>"`.
 
