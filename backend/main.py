@@ -196,7 +196,7 @@ def agent_run(body: AgentRunRequest) -> dict:
 
 @app.post("/agent/compare")
 def agent_compare(body: AgentCompareRequest) -> dict:
-    """Start the same task in all three modes at once."""
+    """Start the same task in both modes (raw, full) at once."""
     _check_text(body.task)
     return {"run_ids": {mode: agent.start_run(body.task, mode) for mode in agent.MODES}}
 

@@ -39,14 +39,6 @@
       "blocked_calls_attacks": 0,
       "blocked_calls_clean": 0
     },
-    "v1": {
-      "attack_success_rate": 0.7380952380952381,
-      "canary_leak_rate": 0.0,
-      "clean_task_completion": 1.0,
-      "n": 63,
-      "blocked_calls_attacks": 0,
-      "blocked_calls_clean": 0
-    },
     "full": {
       "attack_success_rate": 0.0,
       "canary_leak_rate": 0.0,

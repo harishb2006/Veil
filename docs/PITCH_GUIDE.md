@@ -24,7 +24,7 @@ Tell it as a story with a villain, a twist and a payoff, not as a feature list.
    like `[API_KEY_1]` before the cloud sees it. This time we realised those placeholders are *capability
    tokens*. A hijacked agent never holds the real secret — and every placeholder remembers where it came from.
    An address planted by a web page can't be emailed."
-5. **The payoff (live).** Same task, same agent, three levels of protection, side by side.
+5. **The payoff (live).** Same task, same agent, with and without Airlock, side by side.
 6. **The proof.** Measured numbers, not claims.
 7. **Why local.** "The scanner reads your private mail. A cloud scanner would be another leak. Airlock runs
    on an open-weight Gemma 4 on your own laptop."
@@ -35,16 +35,15 @@ Tell it as a story with a villain, a twist and a payoff, not as a feature list.
 | --- | --- | --- |
 | 0:00 | The one sentence. "A real airlock has two doors. So does ours." | Overview page hero |
 | 0:15 | The everyday moment + the villain. | Overview → "The attack": flip *Show what the agent reads* |
-| 0:40 | "Watch the same agent do the same task three times." Press **R**. | Live demo, hero scenario |
+| 0:40 | "Watch the same agent do the same task twice." Press **R**. | Live demo, hero scenario |
 | 0:50 | **Raw:** "No protection. It emailed our real API key to the attacker." | Raw column outcome + red outbox row |
-| 1:10 | **Airlock v1:** "Our old inner door. Still hijacked — but the attacker only got `[API_KEY_1]`. Placeholders already help." | v1 column + outbox |
 | 1:30 | **Full Airlock:** "The outer door removed the hidden order; Priya still got her summary, with her real address restored locally." | Full column, expand the X-ray row |
 | 1:50 | "What if an attack slips past the outer door?" Switch to *The invoice phish*, press **R**. "The gate blocks it: that recipient was planted by an email, not by you." | Blocked row with the gate's reason |
 | 2:15 | The numbers (read them from the Overview "Results" table; see §5). | Overview → Results |
 | 2:40 | "Everything runs locally on Gemma 4, it's open source, and it plugs into any agent — an HTTP API, or one config line in Claude Desktop or Cursor through our MCP server." | Get started page |
 | 2:55 | Close: "Your data can't leak out. Hidden instructions can't get in." | — |
 
-**30-second version:** one sentence → villain (hidden line in a web page) → press R → point at the three
+**30-second version:** one sentence → villain (hidden line in a web page) → press R → point at the two
 outcomes → "runs locally on Gemma 4".
 
 **1-minute version:** 30-second version + the capability-token twist + one number.
@@ -66,8 +65,8 @@ From `eval/results/injection_rules.json` (rules-only outer door, scripted worst-
 42 attacks, 21 clean pages). Re-check the Overview "Results" table before the event; if you re-run the eval
 with Gemma, use the new numbers instead.
 
-- **End to end:** attacks succeeded in **74%** of raw runs, **74%** with v1, **0%** with full Airlock.
-  The real key leaked in **31%** of raw runs and **0%** with v1 or full. **All 21 clean tasks** still completed
+- **End to end:** attacks succeeded in **74%** of raw runs, **0%** with full Airlock.
+  The real key leaked in **31%** of raw runs and **0%** with full. **All 21 clean tasks** still completed
   in every mode.
 - **Detection (rules only):** every hidden-attack kind caught in this dataset (hidden CSS, white and tiny
   text, comments, alt text, zero-width, Unicode tags, base64, exfiltration links), **0 false positives** on
@@ -85,7 +84,7 @@ Never round up, never quote a number that isn't in the results file.
 | --- | --- |
 | Innovation | Placeholders as capability tokens with provenance; inbound content gets outbound protection for free |
 | Technical implementation | Two-tier detection (rules → Gemma), the gate's four policy rules, 450+ tests, a reproducible eval |
-| Functionality | The live three-column run; the firewall lab with any pasted page |
+| Functionality | The live two-column run; the firewall lab with any pasted page |
 | UX | Result-first columns, the X-ray view, plain-language gate reasons |
 | Problem-solving approach | Defence in depth: if the outer door misses, the gate still blocks the action |
 | Impact | Every agent that reads the web or email has this problem; Airlock plugs in through an HTTP API and a local MCP server for Claude Desktop / Cursor (`docs/MCP.md`) |

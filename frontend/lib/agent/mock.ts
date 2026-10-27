@@ -129,7 +129,7 @@ export const mockApi = {
   startRun: (task: string, mode: Mode): Promise<string> => tick(createRun(task, mode)),
 
   compare: (task: string): Promise<RunIds> =>
-    tick({ raw: createRun(task, "raw"), v1: createRun(task, "v1"), full: createRun(task, "full") }),
+    tick({ raw: createRun(task, "raw"), full: createRun(task, "full") }),
 
   getRun: async (runId: string): Promise<Run> => {
     const r = runs.get(runId);
