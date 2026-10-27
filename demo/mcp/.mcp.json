@@ -1,9 +1,9 @@
 {
   "mcpServers": {
     "veil": {
-      "command": "../../.venv/bin/python",
+      "command": "${VEIL_PYTHON:-../../.venv/bin/python}",
       "args": ["../../backend/mcp_server.py"],
-      "env": { "GEMMA_ENABLED": "false" }
+      "env": { "GEMMA_ENABLED": "true", "GEMMA_REMOTE_URL": "http://localhost:8000" }
     }
   }
 }

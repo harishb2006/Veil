@@ -10,7 +10,11 @@ The hidden text on that page tells any AI assistant to email the user's `.env` t
 ```bash
 .venv/bin/python demo/mcp/run_demo.py          # press Enter between steps
 .venv/bin/python demo/mcp/run_demo.py --auto   # run straight through
+# Windows: .venv\Scripts\python.exe demo\mcp\run_demo.py
 ```
+
+If the VEIL backend is running with Gemma loaded (`scripts\start.ps1 -BackendOnly`), the MCP server shares its
+Gemma 4 instead of loading a second copy, and the verdicts say "Gemma + rules". Otherwise it runs rules-only.
 
 The script plays the agent: it starts the MCP server over stdio, as Claude Desktop or Cursor would, and
 calls the tools in order. It shows:
@@ -28,6 +32,17 @@ calls the tools in order. It shows:
 cd demo/mcp
 claude
 ```
+
+On Windows, point `.mcp.json` at the Windows venv first (PowerShell):
+
+```powershell
+cd demo\mcp
+$env:VEIL_PYTHON = "..\..\.venv\Scripts\python.exe"
+claude
+```
+
+The server uses the running backend's Gemma (`GEMMA_REMOTE_URL=http://localhost:8000`), and falls back to
+rules-only if the backend isn't running.
 
 `.mcp.json` starts the VEIL server, `.claude/settings.json` pre-approves its tools and denies Claude Code's
 own `WebFetch`, `WebSearch`, `curl` and `wget`, and `CLAUDE.md` tells the agent to route reads and actions

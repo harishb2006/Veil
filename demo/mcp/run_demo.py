@@ -20,6 +20,29 @@ from mcp.client.stdio import stdio_client
 VEIL = str(Path(__file__).resolve().parents[2])
 PAGE = "https://raw.githubusercontent.com/harishb2006/Veil/main/sandbox/pages/aurora-x2.html"
 AUTO = "--auto" in sys.argv
+BACKEND = os.environ.get("VEIL_BACKEND", "http://localhost:8000")
+
+# The repo's venv Python: .venv\Scripts\python.exe on Windows, .venv/bin/python elsewhere.
+PYTHON = next(
+    (str(p) for p in (Path(VEIL) / ".venv" / "Scripts" / "python.exe", Path(VEIL) / ".venv" / "bin" / "python") if p.exists()),
+    sys.executable,
+)
+
+if os.name == "nt":
+    os.system("")  # turn on ANSI colours in the Windows console
+for stream in (sys.stdout, sys.stderr):
+    try:
+        stream.reconfigure(encoding="utf-8")
+    except (AttributeError, ValueError):
+        pass
+
+
+def gemma_from_backend() -> bool:
+    """True when a VEIL backend with Gemma loaded is running, so the MCP server can share its model."""
+    try:
+        return httpx.get(f"{BACKEND}/health", timeout=3).json().get("gemma_status") == "loaded"
+    except Exception:
+        return False
 
 BOLD, DIM, RED, GREEN, YELLOW, CYAN, RESET = (
     "\033[1m", "\033[2m", "\033[31m", "\033[32m", "\033[33m", "\033[36m", "\033[0m")
@@ -50,12 +73,19 @@ async def call(s: ClientSession, tool: str, args: dict) -> str:
 
 
 async def main() -> None:
-    server = StdioServerParameters(
-        command=f"{VEIL}/.venv/bin/python",
-        args=[f"{VEIL}/backend/mcp_server.py"],
-        env={"GEMMA_ENABLED": os.environ.get("GEMMA_ENABLED", "false"), "PATH": os.environ.get("PATH", "")},
-    )
+    env = dict(os.environ)  # Windows needs SYSTEMROOT and friends in the child's environment
+    shared = gemma_from_backend()
+    if shared:
+        # Use the Gemma 4 already loaded by the running backend instead of loading a second copy.
+        env.update(GEMMA_ENABLED="true", GEMMA_REMOTE_URL=BACKEND)
+    else:
+        env.setdefault("GEMMA_ENABLED", "false")
+    server = StdioServerParameters(command=PYTHON, args=[str(Path(VEIL) / "backend" / "mcp_server.py")], env=env)
     print(f"{BOLD}VEIL MCP demo{RESET}: this script is the 'agent'. Veil runs as a local MCP server.")
+    if shared:
+        print(f"{GREEN}Gemma 4{RESET}: shared with the VEIL backend at {BACKEND} (one model for the extension and MCP).")
+    else:
+        print(f"{YELLOW}Rules only{RESET}: no VEIL backend with Gemma loaded at {BACKEND}. Start it with scripts/start.ps1 -BackendOnly.")
     async with stdio_client(server) as (r, w), ClientSession(r, w) as s:
         info = await s.initialize()
         tools = [t.name for t in (await s.list_tools()).tools]
