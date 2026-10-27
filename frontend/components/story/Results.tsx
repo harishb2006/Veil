@@ -1,25 +1,14 @@
 "use client";
-// Overview, section 4: results. Loads /eval-results.json (written by the eval script). No number is hardcoded:
+// Overview: results. Loads /eval-results.json (written by the eval script). No number is hardcoded:
 // everything shown, including the caption facts, comes from that file. Missing file gives an honest empty state.
-import { useEffect, useState } from "react";
 import type { DetectionStats, EvalResults, ModeStats } from "@/lib/types";
-import { Reveal } from "./Reveal";
-
-type Load = { state: "loading" } | { state: "missing" } | { state: "ready"; data: EvalResults };
-
-function frac(v: number | undefined): number | undefined {
-  if (typeof v !== "number" || Number.isNaN(v)) return undefined;
-  return v > 1 ? v / 100 : v;
-}
-function pct(v: number | undefined): string {
-  const f = frac(v);
-  return f === undefined ? "n/a" : `${Math.round(f * 1000) / 10}%`;
-}
+import { frac, pct, useEvalResults } from "@/lib/useEvalResults";
+import { SectionHead } from "./SectionHead";
 
 const MODES: { key: "raw" | "v1" | "full"; label: string }[] = [
   { key: "raw", label: "Raw (no protection)" },
-  { key: "v1", label: "Airlock v1 (inner door)" },
-  { key: "full", label: "Full Airlock" },
+  { key: "v1", label: "Veil v1 (inner door)" },
+  { key: "full", label: "Full Veil" },
 ];
 
 function Th({ children, className = "" }: { children: React.ReactNode; className?: string }) {
@@ -38,7 +27,7 @@ function EndToEnd({ data }: { data: EvalResults }) {
     <div className="overflow-x-auto rounded-xl border border-line bg-hull">
       <table className="w-full min-w-[560px] border-collapse text-left text-sm">
         <thead>
-          <tr className="border-b border-line text-mist">
+          <tr className="border-b border-line bg-panel/60 font-mono text-xs uppercase tracking-[0.12em] text-mist">
             <Th>Mode</Th>
             <Th>Attack succeeded</Th>
             <Th>Real key leaked</Th>
@@ -85,7 +74,7 @@ function Detection({ rules, both }: { rules?: DetectionStats; both?: DetectionSt
       <div className="mt-5 overflow-x-auto rounded-xl border border-line bg-hull">
         <table className="w-full min-w-[480px] border-collapse text-left text-sm">
           <thead>
-            <tr className="border-b border-line text-mist">
+            <tr className="border-b border-line bg-panel/60 font-mono text-xs uppercase tracking-[0.12em] text-mist">
               <Th>Attack kind</Th>
               <Th className="w-[45%]">Rules only</Th>
               {both && <Th>Rules + Gemma</Th>}
@@ -100,8 +89,8 @@ function Detection({ rules, both }: { rules?: DetectionStats; both?: DetectionSt
                   <td className="px-4 py-2.5 font-mono text-[13px] text-ink">{k}</td>
                   <td className="px-4 py-2.5">
                     <div className="flex items-center gap-3">
-                      <div className="h-1.5 flex-1 rounded-full bg-panel">
-                        <div className={`h-full rounded-full ${f > 0 ? "bg-ink" : "bg-threat"}`} style={{ width: `${Math.max(f * 100, f > 0 ? 3 : 0)}%` }} />
+                      <div className="h-1.5 flex-1 rounded-full bg-line/60">
+                        <div className={`h-full rounded-full ${f > 0 ? "bg-signal" : "bg-threat"}`} style={{ width: `${Math.max(f * 100, f > 0 ? 3 : 0)}%` }} />
                       </div>
                       <span className={`w-12 text-right tabular-nums ${f === 0 ? "font-medium text-threat" : "text-ink"}`}>{pct(v)}</span>
                     </div>
@@ -141,27 +130,13 @@ function Caption({ data }: { data: EvalResults }) {
 }
 
 export function Results() {
-  const [load, setLoad] = useState<Load>({ state: "loading" });
-
-  useEffect(() => {
-    let cancelled = false;
-    fetch("/eval-results.json", { cache: "no-store" })
-      .then((r) => (r.ok ? (r.json() as Promise<EvalResults>) : Promise.reject(new Error("missing"))))
-      .then((data) => !cancelled && setLoad({ state: "ready", data }))
-      .catch(() => !cancelled && setLoad({ state: "missing" }));
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  const load = useEvalResults();
 
   return (
     <section id="results" className="container-page scroll-mt-20 border-t border-line py-20">
-      <Reveal>
-        <h2 className="max-w-[24ch]">Results</h2>
-        <p className="prose-measure mt-4 text-mist">
-          Every number below is read from the evaluation output when this page loads. Nothing is typed in by hand.
-        </p>
-      </Reveal>
+      <SectionHead index="05" eyebrow="Evaluation" title="Measured, not claimed">
+        Every number below is read from the evaluation output when this page loads. Nothing is typed in by hand.
+      </SectionHead>
 
       <div className="mt-10 min-h-[22rem] space-y-10">
         {load.state === "loading" && <p className="text-sm text-mist">Loading results…</p>}

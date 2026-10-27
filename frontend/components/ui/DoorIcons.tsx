@@ -1,4 +1,4 @@
-// Brand and door icons. <LogoMark/> is the Airlock mark (keep in sync with app/icon.svg).
+// Brand and door icons. <LogoMark/> is the Veil mark (keep in sync with app/icon.svg).
 // <OuterDoorIcon/>, <InnerDoorIcon/>, <GateIcon/>: take className and inherit currentColor.
 type IconProps = { className?: string };
 
@@ -20,12 +20,12 @@ function Svg({ className = "h-5 w-5", children }: IconProps & { children: React.
 }
 
 export function LogoMark({ className = "h-6 w-6" }: IconProps) {
-  // Two vertical doors with a gap between them; ink only.
+  // Two vertical doors with a lit gap between them.
   return (
     <svg viewBox="0 0 24 24" fill="none" aria-hidden className={className}>
-      <rect x="2.5" y="3.5" width="19" height="17" rx="3" stroke="#18181b" strokeWidth="1.5" />
-      <path d="M9 3.5v17M15 3.5v17" stroke="#18181b" strokeWidth="1.5" />
-      <rect x="9.75" y="9.5" width="4.5" height="5" fill="#18181b" opacity="0.14" />
+      <rect x="2.5" y="3.5" width="19" height="17" rx="3" stroke="var(--color-ink)" strokeWidth="1.5" />
+      <path d="M9 3.5v17M15 3.5v17" stroke="var(--color-ink)" strokeWidth="1.5" />
+      <rect x="9.75" y="7" width="4.5" height="10" rx="1" fill="var(--color-signal)" />
     </svg>
   );
 }

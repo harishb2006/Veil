@@ -148,7 +148,7 @@ export const mockApi = {
 
   getPage: async (url: string): Promise<PageResponse> => {
     const page = MOCK_PAGES.find((p) => p.url === url);
-    if (!page) throw new Error("404: page not found in the Airlock sandbox (no live web)");
+    if (!page) throw new Error("404: page not found in the Veil sandbox (no live web)");
     return { url, html: page.html };
   },
 

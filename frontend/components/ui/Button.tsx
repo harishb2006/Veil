@@ -1,5 +1,5 @@
 // <Button variant="primary|secondary|ghost" size="sm|md|lg" href="/lab">Label</Button>
-// primary = solid ink, secondary = white with hairline border, ghost = text link style.
+// primary = solid brand signal, secondary = dark surface with hairline border, ghost = text link style.
 // With `href` it renders a Next <Link> (or a plain <a> for http/mailto); otherwise a <button type="button">.
 import Link from "next/link";
 import type { ComponentProps, ReactNode } from "react";
@@ -8,8 +8,8 @@ type Variant = "primary" | "secondary" | "ghost";
 type Size = "sm" | "md" | "lg";
 
 const VARIANT: Record<Variant, string> = {
-  primary: "bg-ink text-white hover:bg-[#33333a]",
-  secondary: "border border-line bg-hull text-ink hover:border-mist/50 hover:bg-panel",
+  primary: "bg-signal text-void hover:bg-signal/85 shadow-[0_0_24px_-6px_var(--color-signal)]",
+  secondary: "border border-line bg-hull text-ink hover:border-signal/40 hover:bg-panel",
   ghost: "text-mist hover:text-ink underline-offset-4 hover:underline",
 };
 const SIZE: Record<Size, string> = {

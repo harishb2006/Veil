@@ -42,7 +42,7 @@ export function Composer({
       <h1>Privacy</h1>
       <p className="prose-measure mt-4 text-lg text-mist">
         The inner door. Use a cloud model without handing it your private data.
-        Paste what you&apos;d normally send to a cloud AI. Airlock finds the private parts on this device, and only
+        Paste what you&apos;d normally send to a cloud AI. Veil finds the private parts on this device, and only
         placeholders ever leave it.
       </p>
 
@@ -110,7 +110,7 @@ export function Composer({
       </ol>
 
       <p className="mt-7 text-xs text-mist">
-        Airlock is a local privacy-assistance layer: rules plus a small local model. Detection is not perfect — it
+        Veil is a local privacy-assistance layer: rules plus a small local model. Detection is not perfect — it
         reduces exposure, it doesn&apos;t guarantee it.
       </p>
     </div>

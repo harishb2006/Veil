@@ -64,7 +64,7 @@ export function StatusPill() {
       <div
         id="backend-status-details"
         role="status"
-        className="pointer-events-none invisible absolute right-0 top-full z-40 mt-2 w-72 rounded-lg border border-line bg-hull p-3.5 opacity-0 shadow-[0_8px_24px_rgb(0_0_0/0.08)] transition group-focus-within/status:visible group-focus-within/status:opacity-100 group-hover/status:visible group-hover/status:opacity-100"
+        className="pointer-events-none invisible absolute right-0 top-full z-40 mt-2 w-72 rounded-lg border border-line bg-hull p-3.5 opacity-0 shadow-[0_8px_24px_rgb(0_0_0/0.5)] transition group-focus-within/status:visible group-focus-within/status:opacity-100 group-hover/status:visible group-hover/status:opacity-100"
       >
         <p className="mb-2 text-sm font-medium text-ink">Backend</p>
         <dl className="space-y-1.5">

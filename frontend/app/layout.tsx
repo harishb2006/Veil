@@ -8,14 +8,14 @@ import { SiteFooter } from "@/components/site/SiteFooter";
 import { SiteHeader } from "@/components/site/SiteHeader";
 
 export const metadata: Metadata = {
-  title: "Airlock — a trust layer for AI agents",
+  title: "Veil — a runtime security layer for AI agents",
   description:
-    "Airlock scans what your AI agent reads for hidden instructions and keeps private values out of what it sends. It runs locally, on an open-weight Gemma 4.",
+    "Veil scans what your AI agent reads for hidden instructions and keeps private values out of what it sends. It runs locally, on an open-weight Gemma 4.",
 };
 
 export const viewport: Viewport = {
-  themeColor: "#fafaf8",
-  colorScheme: "light",
+  themeColor: "#07080a",
+  colorScheme: "dark",
 };
 
 export default function RootLayout({
@@ -29,7 +29,7 @@ export default function RootLayout({
         <Providers>
           <a
             href="#main"
-            className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-[60] focus:rounded-md focus:bg-ink focus:px-3 focus:py-2 focus:text-sm focus:font-medium focus:text-white"
+            className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-[60] focus:rounded-md focus:bg-signal focus:px-3 focus:py-2 focus:text-sm focus:font-medium focus:text-void"
           >
             Skip to content
           </a>

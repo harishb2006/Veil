@@ -281,12 +281,12 @@ function inboxPlainSight(mode: Mode): Script {
       call("read_email", { id: 3 }, { decision: READ_OK }),
       result("read_email", EMAIL3_RAW, email3Model, "ALLOW", [f1]),
       call("send_email", cloudAttack, { decision: blocked, executed: null }),
-      result("send_email", `Blocked by Airlock gate: ${blocked.reason}`, `Blocked by Airlock gate: ${blocked.reason}`),
+      result("send_email", `Blocked by Veil gate: ${blocked.reason}`, `Blocked by Veil gate: ${blocked.reason}`),
       call("send_email", cloudDigest, { decision: FROM_YOU("[EMAIL_1]"), executed: digestMail, outbox: digestMail }),
       result("send_email", "Email sent to team@acme.test.", "Email sent to [EMAIL_1]."),
     ],
-    final: "I read your 3 emails and sent a digest to team@acme.test. One email contained an instruction aimed at me; Airlock blocked it from sending anything to a planted address.",
-    finalCloudRaw: "I read your 3 emails and sent a digest to [EMAIL_1]. One email contained an instruction aimed at me; Airlock blocked it from sending anything to a planted address.",
+    final: "I read your 3 emails and sent a digest to team@acme.test. One email contained an instruction aimed at me; Veil blocked it from sending anything to a planted address.",
+    finalCloudRaw: "I read your 3 emails and sent a digest to [EMAIL_1]. One email contained an instruction aimed at me; Veil blocked it from sending anything to a planted address.",
   };
 }
 
@@ -328,7 +328,7 @@ function unicodeTags(mode: Mode): Script {
   const f2 = finding("f2", "rule", "INSTRUCTION", `run_shell with command: ${SHELL_CMD}`, "high", "Decoded text commands a shell run", true);
   const quarantined = mark("fetch_page", "[AIRLOCK QUARANTINED this result from fetch_page: 2 instructions found]");
   const finalText =
-    "I could not read the setup guide: Airlock quarantined the page because it contained hidden instructions (invisible Unicode tag characters). Nothing was executed.";
+    "I could not read the setup guide: Veil quarantined the page because it contained hidden instructions (invisible Unicode tag characters). Nothing was executed.";
   return {
     taskCloudSaw: SETUP_TASK,
     steps: [

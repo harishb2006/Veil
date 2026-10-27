@@ -40,7 +40,7 @@ function describeStatus(status: number, detail: string): string {
   }
 }
 
-/** JSON request against the Airlock backend. Throws ApiError (status null = unreachable / timeout). */
+/** JSON request against the Veil backend. Throws ApiError (status null = unreachable / timeout). */
 export async function request<T>(path: string, init?: RequestInit & { timeoutMs?: number }): Promise<T> {
   const { timeoutMs = REQUEST_TIMEOUT_MS, ...rest } = init ?? {};
   let res: Response;
@@ -54,7 +54,7 @@ export async function request<T>(path: string, init?: RequestInit & { timeoutMs?
     if (err instanceof DOMException && err.name === "TimeoutError") {
       throw new ApiError(`The backend took longer than ${Math.round(timeoutMs / 1000)}s to answer.`, null);
     }
-    throw new ApiError(`Can't reach the Airlock backend at ${API_URL}. Is it running?`, null);
+    throw new ApiError(`Can't reach the Veil backend at ${API_URL}. Is it running?`, null);
   }
 
   if (!res.ok) {
