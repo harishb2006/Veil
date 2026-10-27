@@ -1,0 +1,25 @@
+{"id":"e01","text":"Priya from Henderson Logistics says the Falcon renewal is at risk because the launch slipped.","expected":[{"text":"Priya","type":"PERSON"},{"text":"Henderson Logistics","type":"ORG"},{"text":"Falcon","type":"PROJECT"}]}
+{"id":"e02","text":"The clinic note says Mateo has diabetes and should return to Dr. Leena Shah next week.","expected":[{"text":"Mateo","type":"PERSON"},{"text":"diabetes","type":"MEDICAL"},{"text":"Dr. Leena Shah","type":"PERSON"}]}
+{"id":"e03","text":"HR recorded that Sofia earns 185000 INR and lives at 18 Palm Grove, Coimbatore.","expected":[{"text":"Sofia","type":"PERSON"},{"text":"185000 INR","type":"HR"},{"text":"18 Palm Grove, Coimbatore","type":"ADDRESS"}]}
+{"id":"e04","text":"Slack: Arjun says Project Nimbus is blocked by the vendor approval and asks for a summary.","expected":[{"text":"Arjun","type":"PERSON"},{"text":"Project Nimbus","type":"PROJECT"}]}
+{"id":"e05","text":"The support customer Bluebird Retail asked whether their CFO Noor can join the escalation call.","expected":[{"text":"Bluebird Retail","type":"ORG"},{"text":"Noor","type":"PERSON"}]}
+{"id":"e06","text":"Sales update: the fictional Acme renewal is owned by Elena and depends on Project Cedar.","expected":[{"text":"Acme","type":"ORG"},{"text":"Elena","type":"PERSON"},{"text":"Project Cedar","type":"PROJECT"}]}
+{"id":"e07","text":"Patient note: Ravi reports asthma, and his emergency contact is Mira.","expected":[{"text":"Ravi","type":"PERSON"},{"text":"asthma","type":"MEDICAL"},{"text":"Mira","type":"PERSON"}]}
+{"id":"e08","text":"The incident commander says the outage affects the Orion warehouse in Madurai.","expected":[{"text":"Orion warehouse","type":"ORG"},{"text":"Madurai","type":"LOCATION"}]}
+{"id":"e09","text":"Please email the fake test user at test.person@example.test about tomorrow's meeting.","expected":[{"text":"test.person@example.test","type":"EMAIL"}]}
+{"id":"e10","text":"The runbook uses https://internal.example.test/admin and host 192.0.2.12 during the drill.","expected":[{"text":"https://internal.example.test/admin","type":"INTERNAL_URL"},{"text":"192.0.2.12","type":"IP_ADDRESS"}]}
+{"id":"e11","text":"Rotate key sk_test_51FakeKeyValue123 and call +91 90000 11111 after the maintenance.","expected":[{"text":"sk_test_51FakeKeyValue123","type":"API_KEY"},{"text":"+91 90000 11111","type":"PHONE"}]}
+{"id":"e12","text":"The config contains password=RiverStone!77 and should not be pasted into a ticket.","expected":[{"text":"RiverStone!77","type":"PASSWORD"}]}
+{"id":"e13","text":"The test card 4111 1111 1111 1111 appears in the fixture and is not real.","expected":[{"text":"4111 1111 1111 1111","type":"CARD"}]}
+{"id":"e14","text":"The demo token eyJhbGciOiJub25lIn0.fake.payload is present only in this example.","expected":[{"text":"eyJhbGciOiJub25lIn0.fake.payload","type":"JWT"}]}
+{"id":"e15","text":"Generic coding question: how do I sort a list of integers in Python?","expected":[]}
+{"id":"e16","text":"Generic product question: what is the difference between a queue and a stack?","expected":[]}
+{"id":"e17","text":"A generic reminder says to run the unit tests before opening a pull request.","expected":[]}
+{"id":"e18","text":"Support ticket: Camille at Redwood Labs cannot access the Helios workspace after the migration.","expected":[{"text":"Camille","type":"PERSON"},{"text":"Redwood Labs","type":"ORG"},{"text":"Helios","type":"PROJECT"}]}
+{"id":"e19","text":"Sales says the fictional customer Delta Freight will cancel unless Omar approves the Atlas rollout.","expected":[{"text":"Delta Freight","type":"ORG"},{"text":"Omar","type":"PERSON"},{"text":"Atlas","type":"PROJECT"}]}
+{"id":"e20","text":"HR note: Jun's salary is 92000 INR and the manager should review the promotion privately.","expected":[{"text":"Jun","type":"PERSON"},{"text":"92000 INR","type":"HR"}]}
+{"id":"e21","text":"Clinic note for Asha: migraine symptoms persist and the follow-up is at 44 Lake Road, Salem.","expected":[{"text":"Asha","type":"PERSON"},{"text":"migraine","type":"MEDICAL"},{"text":"44 Lake Road, Salem","type":"ADDRESS"}]}
+{"id":"e22","text":"Outage report: Victor's team is restarting the Borealis service in the Pune office.","expected":[{"text":"Victor","type":"PERSON"},{"text":"Borealis","type":"PROJECT"},{"text":"Pune","type":"LOCATION"}]}
+{"id":"e23","text":"Slack from Nia: the fictional Nova account needs a privacy review before renewal.","expected":[{"text":"Nia","type":"PERSON"},{"text":"Nova account","type":"ORG"}]}
+{"id":"e24","text":"The deployment log sent an alert to ops@example.test and exposed 203.0.113.9.","expected":[{"text":"ops@example.test","type":"EMAIL"},{"text":"203.0.113.9","type":"IP_ADDRESS"}]}
+{"id":"e25","text":"The fake service credential is secret=Kite-Blue-904 and the contact number is +1 202 555 0199.","expected":[{"text":"Kite-Blue-904","type":"PASSWORD"},{"text":"+1 202 555 0199","type":"PHONE"}]}
